@@ -128,7 +128,7 @@ import { AiChatComponent } from './shared/components/ai-chat.component';
          <!-- Bottom Glow -->
          <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-amber-900/10 to-transparent pointer-events-none"></div>
 
-         <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 relative z-10 mb-12">
+         <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 relative z-10 mb-12">
           <div class="flex flex-col items-center md:items-start text-center md:text-left">
             <div class="flex items-center gap-4 mb-6">
                 <div class="w-14 h-14 bg-white/5 rounded-full flex items-center justify-center border border-white/10 p-2">
@@ -140,9 +140,22 @@ import { AiChatComponent } from './shared/components/ai-chat.component';
                 </div>
             </div>
             <p class="mb-6 text-stone-400 leading-relaxed text-sm md:border-l-2 md:border-amber-900/50 md:pl-4">{{ templeService.siteConfig().address }}</p>
+             
+             <!-- Social Media & Links -->
              <div class="flex gap-3 justify-center md:justify-start">
-                <a [href]="templeService.siteConfig().whatsappChannel" class="w-9 h-9 rounded bg-stone-800 flex items-center justify-center hover:bg-green-600 transition-colors text-white border border-stone-700" title="WhatsApp Channel"><span class="material-icons text-sm">chat</span></a>
-                <a [href]="templeService.siteConfig().liveLink" class="w-9 h-9 rounded bg-stone-800 flex items-center justify-center hover:bg-red-600 transition-colors text-white border border-stone-700" title="YouTube Live"><span class="material-icons text-sm">smart_display</span></a>
+                @if(templeService.siteConfig().socialLinks.youtube) {
+                  <a [href]="templeService.siteConfig().socialLinks.youtube" target="_blank" class="w-9 h-9 rounded bg-stone-800 flex items-center justify-center hover:bg-red-600 transition-colors text-white border border-stone-700" title="YouTube"><img src="https://cdn-icons-png.flaticon.com/128/1384/1384060.png" class="w-5 h-5 filter invert"></a>
+                }
+                @if(templeService.siteConfig().socialLinks.facebook) {
+                  <a [href]="templeService.siteConfig().socialLinks.facebook" target="_blank" class="w-9 h-9 rounded bg-stone-800 flex items-center justify-center hover:bg-blue-600 transition-colors text-white border border-stone-700" title="Facebook"><img src="https://cdn-icons-png.flaticon.com/128/733/733547.png" class="w-5 h-5 filter invert"></a>
+                }
+                @if(templeService.siteConfig().socialLinks.instagram) {
+                  <a [href]="templeService.siteConfig().socialLinks.instagram" target="_blank" class="w-9 h-9 rounded bg-stone-800 flex items-center justify-center hover:bg-pink-600 transition-colors text-white border border-stone-700" title="Instagram"><img src="https://cdn-icons-png.flaticon.com/128/2111/2111463.png" class="w-5 h-5 filter invert"></a>
+                }
+                @if(templeService.siteConfig().socialLinks.twitter) {
+                  <a [href]="templeService.siteConfig().socialLinks.twitter" target="_blank" class="w-9 h-9 rounded bg-stone-800 flex items-center justify-center hover:bg-black transition-colors text-white border border-stone-700" title="Twitter/X"><img src="https://cdn-icons-png.flaticon.com/128/5969/5969020.png" class="w-4 h-4 filter invert"></a>
+                }
+                <a [href]="templeService.siteConfig().whatsappChannel" class="w-9 h-9 rounded bg-stone-800 flex items-center justify-center hover:bg-green-600 transition-colors text-white border border-stone-700" title="WhatsApp Channel"><img src="https://cdn-icons-png.flaticon.com/128/733/733585.png" class="w-5 h-5 filter invert"></a>
              </div>
           </div>
 
@@ -172,6 +185,22 @@ import { AiChatComponent } from './shared/components/ai-chat.component';
                  <span class="text-amber-100 font-mono">{{ templeService.siteConfig().timings.eveningDarshan }}</span>
               </div>
             </div>
+          </div>
+
+          <div class="flex flex-col items-center md:items-end">
+            <h4 class="font-serif text-white mb-6 uppercase tracking-widest text-xs font-bold border-b border-white/10 pb-2 inline-block">Contact Us</h4>
+            
+            <a [href]="'tel:' + templeService.siteConfig().contactPhone" class="text-sm text-amber-100 font-bold mb-2 flex items-center gap-2 hover:text-white transition-colors">
+               <span class="material-icons text-amber-600 text-sm">phone</span> {{ templeService.siteConfig().contactPhone }}
+            </a>
+            
+            <a [href]="'mailto:' + templeService.siteConfig().contactEmail" class="text-xs opacity-70 mb-6 flex items-center gap-2 hover:text-white hover:opacity-100 transition-all">
+               <span class="material-icons text-stone-500 text-xs">email</span> {{ templeService.siteConfig().contactEmail }}
+            </a>
+            
+            <a routerLink="/admin" class="text-xs border border-white/20 px-4 py-2 rounded hover:bg-white/5 transition-colors text-stone-300 uppercase tracking-widest flex items-center gap-2">
+               <span class="material-icons text-[10px]">settings</span> Admin Login
+            </a>
           </div>
         </div>
 

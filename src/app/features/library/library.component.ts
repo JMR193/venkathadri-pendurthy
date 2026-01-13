@@ -1,6 +1,7 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { TempleService, LibraryItem } from '../../core/services/temple.service';
 import { RouterLink } from '@angular/router';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-library',
@@ -8,8 +9,13 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="bg-amber-50 min-h-screen py-12">
-      <div class="container mx-auto px-4">
+    <div class="bg-amber-50 min-h-screen py-12 relative">
+      <!-- Back Button -->
+      <button (click)="goBack()" class="absolute top-4 left-4 flex items-center gap-2 text-stone-500 hover:text-stone-800 transition-colors font-bold text-sm z-10">
+         <span class="material-icons text-sm">arrow_back</span> Back
+      </button>
+
+      <div class="container mx-auto px-4 mt-4">
         
         <div class="text-center mb-12">
           <h2 class="text-4xl font-serif font-bold text-red-900 mb-4">Spiritual Digital Library</h2>
@@ -108,6 +114,11 @@ import { RouterLink } from '@angular/router';
 })
 export class LibraryComponent {
   templeService = inject(TempleService);
+  location = inject(Location);
+
+  goBack() {
+    this.location.back();
+  }
 
   cacheAudio(url: string) {
     // By fetching it, the Service Worker will intercept and cache it

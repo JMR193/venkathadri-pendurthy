@@ -1,6 +1,7 @@
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TempleService } from '../../core/services/temple.service';
 import { FormsModule } from '@angular/forms';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-feedback',
@@ -8,8 +9,13 @@ import { FormsModule } from '@angular/forms';
   imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="bg-amber-50 py-12 min-h-screen flex items-center justify-center">
-      <div class="container mx-auto px-4">
+    <div class="bg-amber-50 py-12 min-h-screen flex items-center justify-center relative">
+      <!-- Back Button -->
+      <button (click)="goBack()" class="absolute top-4 left-4 flex items-center gap-2 text-stone-500 hover:text-stone-800 transition-colors font-bold text-sm z-10">
+         <span class="material-icons text-sm">arrow_back</span> Back
+      </button>
+
+      <div class="container mx-auto px-4 mt-4">
         <div class="max-w-xl mx-auto bg-white themed-rounded-lg shadow-xl overflow-hidden">
           <div class="bg-stone-800 p-6 text-white text-center">
             <h2 class="text-2xl font-serif font-bold">Devotee Feedback</h2>
@@ -49,9 +55,14 @@ import { FormsModule } from '@angular/forms';
 })
 export class FeedbackComponent {
   templeService = inject(TempleService);
+  location = inject(Location);
   name = '';
   message = '';
   submitted = signal(false);
+
+  goBack() {
+    this.location.back();
+  }
 
   handleSubmit(e: Event) {
     e.preventDefault();

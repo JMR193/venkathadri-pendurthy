@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TempleService } from '../../core/services/temple.service';
 import { RouterLink } from '@angular/router';
@@ -10,41 +10,89 @@ import { RouterLink } from '@angular/router';
   imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <div class="min-h-screen bg-stone-50 py-12 px-4">
-      <div class="max-w-5xl mx-auto">
+      <div class="max-w-5xl mx-auto relative">
         
+        <!-- Back Button -->
+        <button (click)="goBack()" class="absolute -top-10 left-0 flex items-center gap-2 text-stone-500 hover:text-stone-800 transition-colors font-bold text-sm">
+           <span class="material-icons text-sm">arrow_back</span> Back
+        </button>
+
         @if (!templeService.currentUser()) {
-          <!-- Login View -->
-          <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-amber-100">
+          <!-- Authentication View -->
+          <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-amber-100 transition-all mt-4">
             <div class="theme-bg-primary p-8 text-center relative overflow-hidden">
                <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/mandala.png')]"></div>
                <div class="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white/20">
-                  <span class="material-icons text-amber-700 text-4xl">temple_hindu</span>
+                  <span class="material-icons text-amber-700 text-4xl">{{ authMode === 'login' ? 'login' : 'person_add' }}</span>
                </div>
-               <h2 class="text-2xl font-serif font-bold text-white">Devotee Login</h2>
+               <h2 class="text-2xl font-serif font-bold text-white">{{ authMode === 'login' ? 'Devotee Login' : 'Create Account' }}</h2>
                <p class="text-amber-200 text-sm mt-1">Join our spiritual community</p>
             </div>
             
             <div class="p-8">
-               <div class="mb-6">
-                 <label class="block text-sm font-bold text-stone-700 mb-2">Mobile Number</label>
-                 <div class="relative">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 font-bold">+91</span>
-                    <input type="tel" [(ngModel)]="mobileNumber" placeholder="9999999999" class="w-full pl-12 p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none font-bold text-lg tracking-widest">
+               
+               <!-- LOGIN FORM -->
+               @if (authMode === 'login') {
+                 <div class="space-y-4">
+                   <div>
+                     <label class="block text-sm font-bold text-stone-700 mb-2">Email Address</label>
+                     <input type="email" [(ngModel)]="loginData.email" placeholder="devotee@example.com" class="w-full p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
+                   </div>
+                   <div>
+                     <label class="block text-sm font-bold text-stone-700 mb-2">Password</label>
+                     <input type="password" [(ngModel)]="loginData.password" placeholder="••••••••" class="w-full p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
+                   </div>
+                   
+                   <button (click)="onLogin()" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold py-3 rounded-lg shadow hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                     Login <span class="material-icons text-sm">login</span>
+                   </button>
+                   
+                   <div class="mt-6 text-center pt-4 border-t border-stone-100">
+                     <p class="text-stone-500 text-sm">Don't have an account?</p>
+                     <button (click)="switchMode('signup')" class="text-amber-700 font-bold hover:underline">Sign Up Now</button>
+                   </div>
                  </div>
-               </div>
-               
-               <button (click)="handleLogin()" class="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white font-bold py-3 rounded-lg shadow hover:shadow-lg transition-all flex items-center justify-center gap-2">
-                 <span>Send OTP</span> <span class="material-icons text-sm">arrow_forward</span>
-               </button>
-               
-               <div class="mt-6 text-center text-xs text-stone-400">
-                 <p>By logging in, you can track your donations, bookings, and access exclusive spiritual content.</p>
-               </div>
+               }
+
+               <!-- SIGN UP FORM -->
+               @if (authMode === 'signup') {
+                 <div class="space-y-4 animate-fade-in">
+                    <div>
+                       <label class="block text-xs font-bold uppercase text-stone-500 mb-1">Full Name</label>
+                       <input type="text" [(ngModel)]="signupData.name" class="w-full p-2 border border-stone-300 rounded focus:ring-2 focus:ring-amber-500 outline-none">
+                    </div>
+                    <div>
+                       <label class="block text-xs font-bold uppercase text-stone-500 mb-1">Email Address</label>
+                       <input type="email" [(ngModel)]="signupData.email" class="w-full p-2 border border-stone-300 rounded focus:ring-2 focus:ring-amber-500 outline-none">
+                    </div>
+                    <div>
+                       <label class="block text-xs font-bold uppercase text-stone-500 mb-1">Mobile Number</label>
+                       <div class="relative">
+                          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 font-bold text-xs">+91</span>
+                          <input type="tel" [(ngModel)]="signupData.phone" placeholder="9999999999" class="w-full pl-10 p-2 border border-stone-300 rounded focus:ring-2 focus:ring-amber-500 outline-none font-bold tracking-wider">
+                       </div>
+                    </div>
+                    <div>
+                       <label class="block text-xs font-bold uppercase text-stone-500 mb-1">Password</label>
+                       <input type="password" [(ngModel)]="signupData.password" class="w-full p-2 border border-stone-300 rounded focus:ring-2 focus:ring-amber-500 outline-none">
+                    </div>
+
+                    <button (click)="onSignup()" class="w-full bg-stone-800 text-white font-bold py-3 rounded-lg shadow hover:bg-black transition-all mt-2">
+                       Create Account
+                    </button>
+
+                    <div class="mt-4 text-center">
+                       <p class="text-stone-500 text-sm">Already registered?</p>
+                       <button (click)="switchMode('login')" class="text-amber-700 font-bold hover:underline">Login Here</button>
+                    </div>
+                 </div>
+               }
+
             </div>
           </div>
         } @else {
           <!-- Dashboard View -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
              
              <!-- Sidebar / Profile Card -->
              <div class="lg:col-span-1">
@@ -57,7 +105,7 @@ import { RouterLink } from '@angular/router';
                          {{ templeService.currentUser()?.name?.charAt(0) }}
                       </div>
                       <h2 class="text-xl font-bold font-serif">{{ templeService.currentUser()?.name }}</h2>
-                      <p class="text-stone-400 text-sm">{{ templeService.currentUser()?.phone }}</p>
+                      <p class="text-stone-400 text-sm">{{ templeService.currentUser()?.email }}</p>
                       <div class="mt-4 flex justify-center gap-2">
                          <span class="bg-amber-600/20 text-amber-400 text-[10px] px-2 py-1 rounded uppercase tracking-wider font-bold">Verified Devotee</span>
                       </div>
@@ -181,20 +229,47 @@ import { RouterLink } from '@angular/router';
 })
 export class ProfileComponent {
   templeService = inject(TempleService);
-  mobileNumber = '';
+  location = inject(Location);
   activeTab: 'overview' | 'bookings' | 'donations' = 'overview';
 
-  handleLogin() {
-     if(this.mobileNumber.length >= 10) {
-        // Simulate OTP process then login
-        const success = this.templeService.loginDevotee(this.mobileNumber);
-        if(success) alert('Welcome back, devotee!');
+  // Auth State
+  authMode: 'login' | 'signup' = 'login';
+  
+  // Forms
+  loginData = { email: '', password: '' };
+  signupData = { name: '', email: '', phone: '', password: '' };
+
+  switchMode(mode: 'login' | 'signup') {
+    this.authMode = mode;
+    this.loginData = { email: '', password: '' };
+  }
+
+  onLogin() {
+     if (this.templeService.loginDevotee(this.loginData.email, this.loginData.password)) {
+        // Success
      } else {
-        alert('Please enter a valid mobile number');
+        alert('Invalid email or password. Please try again.');
+     }
+  }
+
+  onSignup() {
+     if (!this.signupData.name || !this.signupData.email || !this.signupData.password) {
+        alert('All fields are required.');
+        return;
+     }
+     
+     if (this.templeService.registerDevotee(this.signupData.name, this.signupData.email, this.signupData.phone, this.signupData.password)) {
+        alert('Registration Successful! Welcome to Uttarandhra Tirumala.');
+     } else {
+        alert('Registration failed. This email might already be registered.');
      }
   }
 
   getTotalDonations() {
      return this.templeService.currentUser()?.donations?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
+  }
+
+  goBack() {
+    this.location.back();
   }
 }

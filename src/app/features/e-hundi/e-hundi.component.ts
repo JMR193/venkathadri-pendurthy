@@ -1,6 +1,6 @@
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { TempleService } from '../../core/services/temple.service';
 
 @Component({
@@ -9,8 +9,13 @@ import { TempleService } from '../../core/services/temple.service';
   imports: [FormsModule, CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="bg-stone-50 min-h-screen py-12">
-      <div class="container mx-auto px-4">
+    <div class="bg-stone-50 min-h-screen py-12 relative">
+      <!-- Back Button -->
+      <button (click)="goBack()" class="absolute top-4 left-4 flex items-center gap-2 text-stone-500 hover:text-stone-800 transition-colors font-bold text-sm z-10">
+         <span class="material-icons text-sm">arrow_back</span> Back
+      </button>
+
+      <div class="container mx-auto px-4 mt-4">
         
         <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden print:shadow-none print:max-w-full relative border border-stone-200">
           
@@ -180,7 +185,7 @@ import { TempleService } from '../../core/services/temple.service';
         </div>
       </div>
 
-      <!-- Payment Modal (Same as before but simplified for brevity in XML) -->
+      <!-- Payment Modal -->
       @if (showPaymentModal()) {
         <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
            <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
@@ -197,6 +202,7 @@ import { TempleService } from '../../core/services/temple.service';
 })
 export class EHundiComponent {
   templeService = inject(TempleService);
+  location = inject(Location);
   
   amount = this.templeService.siteConfig().donationAmounts[0] || 101;
   donorName = '';
@@ -209,6 +215,10 @@ export class EHundiComponent {
   transactionId = '';
   currentDate = '';
   showPaymentModal = signal(false);
+
+  goBack() {
+    this.location.back();
+  }
 
   processPayment(e: Event) {
     e.preventDefault();

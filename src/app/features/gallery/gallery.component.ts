@@ -2,7 +2,7 @@ import { Component, inject, ChangeDetectionStrategy, signal } from '@angular/cor
 import { TempleService, GalleryItem } from '../../core/services/temple.service';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 
 @Component({
   selector: 'app-gallery',
@@ -10,8 +10,13 @@ import { CommonModule } from '@angular/common';
   imports: [FormsModule, CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="bg-stone-50 min-h-screen py-12">
-      <div class="container mx-auto px-4">
+    <div class="bg-stone-50 min-h-screen py-12 relative">
+      <!-- Back Button -->
+      <button (click)="goBack()" class="absolute top-4 left-4 flex items-center gap-2 text-stone-500 hover:text-stone-800 transition-colors font-bold text-sm z-10">
+         <span class="material-icons text-sm">arrow_back</span> Back
+      </button>
+
+      <div class="container mx-auto px-4 mt-4">
         <div class="text-center mb-12">
           <h2 class="text-4xl font-serif font-bold text-red-900 mb-4">Divine Gallery</h2>
           <div class="w-24 h-1 bg-amber-500 mx-auto rounded"></div>
@@ -107,6 +112,7 @@ import { CommonModule } from '@angular/common';
 export class GalleryComponent {
   templeService = inject(TempleService);
   sanitizer: DomSanitizer = inject(DomSanitizer);
+  location = inject(Location);
   
   uploadMode: 'url' | 'file' = 'url';
   newPhotoUrls = '';
@@ -118,6 +124,10 @@ export class GalleryComponent {
   selectedImage = signal<GalleryItem | null>(null);
   showWallpaperInfo = signal(false);
   
+  goBack() {
+    this.location.back();
+  }
+
   openModal(item: GalleryItem) {
     this.selectedImage.set(item);
     this.showWallpaperInfo.set(false);

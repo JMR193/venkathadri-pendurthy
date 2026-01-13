@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { TempleService, SevaType } from '../../core/services/temple.service';
 
@@ -8,9 +8,14 @@ import { TempleService, SevaType } from '../../core/services/temple.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <div class="min-h-screen bg-stone-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-screen bg-stone-50 py-12 px-4 sm:px-6 lg:px-8 relative">
+      <!-- Back Button -->
+      <button (click)="goBack()" class="absolute top-4 left-4 flex items-center gap-2 text-stone-500 hover:text-stone-800 transition-colors font-bold text-sm">
+         <span class="material-icons text-sm">arrow_back</span> Back
+      </button>
+
       @if (templeService.siteConfig().enableBooking) {
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-4xl mx-auto mt-8">
           
           <div class="text-center mb-12">
             <h2 class="text-3xl font-serif font-bold theme-text-primary">Seva Booking Portal</h2>
@@ -168,6 +173,7 @@ import { TempleService, SevaType } from '../../core/services/temple.service';
 export class BookingComponent {
   private fb = inject(FormBuilder);
   templeService = inject(TempleService);
+  location = inject(Location);
   
   successMessage = signal(false);
   showPayment = signal(false);
@@ -188,6 +194,10 @@ export class BookingComponent {
     if (sevas.length > 0) {
       this.bookingForm.patchValue({ type: sevas[0].name });
     }
+  }
+
+  goBack() {
+    this.location.back();
   }
 
   setSeva(seva: SevaType) {

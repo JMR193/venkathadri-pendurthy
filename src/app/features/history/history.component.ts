@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { TempleService } from '../../core/services/temple.service';
 
 @Component({
@@ -7,10 +7,15 @@ import { TempleService } from '../../core/services/temple.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="min-h-screen bg-stone-50 py-12 px-4">
+    <div class="min-h-screen bg-stone-50 py-12 px-4 relative">
       <div class="max-w-6xl mx-auto">
+        <!-- Back Button -->
+        <button (click)="goBack()" class="absolute top-4 left-4 md:left-8 flex items-center gap-2 text-stone-500 hover:text-stone-800 transition-colors font-bold text-sm bg-white/50 p-2 rounded-full backdrop-blur-sm">
+           <span class="material-icons text-sm">arrow_back</span> Back
+        </button>
+
         <!-- Header -->
-        <div class="text-center mb-16 animate-fade-in-up">
+        <div class="text-center mb-16 animate-fade-in-up mt-8 md:mt-0">
              <h1 class="text-4xl md:text-5xl font-serif font-bold text-stone-900 mb-4">The Sacred History</h1>
              <p class="text-xl text-stone-600 italic font-serif">"The Tirupati of North Andhra"</p>
         </div>
@@ -98,4 +103,9 @@ import { TempleService } from '../../core/services/temple.service';
 })
 export class HistoryComponent {
     templeService = inject(TempleService);
+    location = inject(Location);
+
+    goBack() {
+      this.location.back();
+    }
 }

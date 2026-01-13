@@ -52,6 +52,8 @@ export interface SiteConfig {
   whatsappChannel: string;
   historyContent: string;
   historyImageUrl: string;
+  aboutUsContent?: string;
+  contactUsContent?: string;
   bankInfo: BankInfo;
   timings: Timings;
   enableBooking: boolean;
@@ -171,6 +173,7 @@ export interface UserProfile {
   email: string;
   role: 'Super Admin' | 'Admin' | 'Priest' | 'Staff' | 'Devotee';
   phone: string;
+  password?: string; // Added password field
   lastActive: string;
   donations?: Donation[];
   bookings?: Booking[];
@@ -220,6 +223,8 @@ export class TempleService {
     whatsappChannel: 'https://whatsapp.com/channel/0029Vap96ByFnSzG0KocMq1y',
     historyContent: `The Lord of the Universe and Vaikuntha, Srimannarayana, takes many forms to protect his devotees. In this Kaliyuga, he incarnated as Lord Venkateswara to offer solace to mankind.`,
     historyImageUrl: 'https://opwncdejpaeltylplvhk.supabase.co/storage/v1/object/public/images/Gemini_Generated_Image_ujj4zlujj4zlujj4.png',
+    aboutUsContent: '<p>Welcome to Uttarandhra Tirumala, a divine abode dedicated to Lord Venkateswara.</p>',
+    contactUsContent: '<p>Contact us at the temple office for seva bookings and donations.</p>',
     bankInfo: {
       accountName: 'Uttarandhra Tirupati Devasthanam Trust',
       accountNumber: '123456789012',
@@ -254,7 +259,8 @@ export class TempleService {
     socialLinks: {
       youtube: 'https://youtube.com',
       facebook: 'https://facebook.com',
-      instagram: 'https://instagram.com'
+      instagram: 'https://instagram.com',
+      twitter: ''
     }
   });
 
@@ -337,7 +343,8 @@ export class TempleService {
   private _isAdminAuthenticated = signal<boolean>(false);
 
   users = signal<UserProfile[]>([
-    { id: '1', name: 'Admin User', email: 'admin@uttarandhra.org', role: 'Super Admin', phone: '9999999999', lastActive: new Date().toISOString() }
+    { id: '1', name: 'Admin User', email: 'admin@uttarandhra.org', role: 'Super Admin', phone: '9999999999', lastActive: new Date().toISOString(), password: 'admin' },
+    { id: 'dev1', name: 'Srinivas Rao', email: 'srinivas@example.com', role: 'Devotee', phone: '9876543210', lastActive: new Date().toISOString(), bookings: [], donations: [], password: 'password' }
   ]);
   
   // 3D Darshan State
@@ -386,29 +393,43 @@ export class TempleService {
      this.updateInventory('1', this.insights().ladduStock);
   }
 
-  // Devotee Auth (Mock)
-  loginDevotee(phone: string) {
-     // Mock Login
-     const user: UserProfile = {
-        id: 'dev1',
-        name: 'Srinivas Rao',
-        email: 'srinivas@example.com',
-        phone: phone,
+  // --- Auth & User Logic ---
+
+  checkUserExists(email: string): boolean {
+    return this.users().some(u => u.email === email);
+  }
+
+  registerDevotee(name: string, email: string, phone: string, password: string): boolean {
+     if (this.checkUserExists(email)) return false;
+
+     const newUser: UserProfile = {
+        id: 'dev' + Date.now(),
+        name,
+        email,
+        phone,
+        password,
         role: 'Devotee',
         lastActive: new Date().toISOString(),
-        bookings: [
-            { id: 'b1', name: 'Srinivas Rao', date: '2024-03-10', type: 'Special Darshan', status: 'Completed', amount: 300 }
-        ],
-        donations: [
-            { id: 'd10', donorName: 'Srinivas Rao', amount: 1116, category: 'Annadanam', date: '2024-02-15', transactionId: 'TXN0011' }
-        ]
+        bookings: [],
+        donations: []
      };
-     this.currentUser.set(user);
+     this.users.update(u => [...u, newUser]);
+     this.currentUser.set(newUser);
      return true;
+  }
+
+  loginDevotee(email: string, password: string): boolean {
+     const user = this.users().find(u => u.email === email && u.password === password);
+     if (user) {
+        this.currentUser.set(user);
+        return true;
+     }
+     return false;
   }
 
   logout() {
       this.currentUser.set(null);
+      this._isAdminAuthenticated.set(false); // Logout admin too just in case
   }
 
   updateSiteConfig(config: SiteConfig) { 
@@ -538,11 +559,16 @@ export class TempleService {
   }
 
   // --- Admin Auth ---
-  loginAdmin(password: string): boolean {
-    // Simple mock check
-    if(password === 'admin123' || password === 'omnamovenkatesaya') {
+  loginAdmin(email: string, password: string): boolean {
+    const user = this.users().find(u => u.email === email && u.password === password && (u.role === 'Admin' || u.role === 'Super Admin'));
+    if(user) {
       this._isAdminAuthenticated.set(true);
       return true;
+    }
+    // Legacy/Fallback for demo
+    if(email === 'admin' && (password === 'admin123' || password === 'omnamovenkatesaya')) {
+       this._isAdminAuthenticated.set(true);
+       return true;
     }
     return false;
   }

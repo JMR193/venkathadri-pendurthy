@@ -3,29 +3,41 @@ import { TempleService, LibraryItem, Booking, NewsItem, GalleryItem, Donation, T
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { select, scaleBand, axisBottom, scaleLinear, max, axisLeft } from 'd3';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, RouterLink],
   template: `
     <div class="min-h-screen bg-stone-100 font-sans flex flex-col">
       
       <!-- Login Overlay -->
       @if (!templeService.isAdmin()) {
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/90 backdrop-blur-sm animate-fade-in">
-          <div class="bg-white p-8 rounded-xl shadow-2xl text-center border-t-4 border-amber-600 w-full max-w-md theme-border-primary">
+          <div class="bg-white p-8 rounded-xl shadow-2xl text-center border-t-4 border-amber-600 w-full max-w-md theme-border-primary relative">
+             <!-- Back to Website -->
+             <a routerLink="/" class="absolute top-4 left-4 text-stone-400 hover:text-stone-600 text-xs flex items-center gap-1 font-bold">
+               <span class="material-icons text-xs">arrow_back</span> Website
+             </a>
+
              <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span class="material-icons theme-text-primary text-3xl">lock</span>
              </div>
              <h2 class="text-2xl font-serif font-bold mb-2 text-stone-800">Admin Access Required</h2>
              <p class="text-stone-500 mb-6 text-sm">Please authenticate to access the ERP System.</p>
              
-             <div class="mb-4 text-left">
-                <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Passcode</label>
-                <input type="password" [(ngModel)]="adminPassword" (keyup.enter)="attemptLogin()" class="w-full p-3 border border-stone-300 rounded focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Enter Admin Password">
+             <div class="mb-4 text-left space-y-3">
+                <div>
+                  <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Email / Username</label>
+                  <input type="text" [(ngModel)]="adminEmail" class="w-full p-3 border border-stone-300 rounded focus:ring-2 focus:ring-amber-500 outline-none" placeholder="admin@uttarandhra.org">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-stone-500 uppercase mb-1">Password</label>
+                  <input type="password" [(ngModel)]="adminPassword" (keyup.enter)="attemptLogin()" class="w-full p-3 border border-stone-300 rounded focus:ring-2 focus:ring-amber-500 outline-none" placeholder="••••••••">
+                </div>
                 @if (loginError()) {
-                  <p class="text-red-600 text-xs mt-1">Invalid credentials. Try 'admin123'.</p>
+                  <p class="text-red-600 text-xs mt-1">Invalid credentials. Default: admin/admin123</p>
                 }
              </div>
 
@@ -104,6 +116,12 @@ import { select, scaleBand, axisBottom, scaleLinear, max, axisLeft } from 'd3';
                <span class="material-icons text-sm">settings</span> Settings
             </button>
           </nav>
+          
+          <div class="p-4 border-t border-stone-800">
+             <a routerLink="/" class="text-stone-500 hover:text-amber-400 flex items-center gap-2 text-sm font-bold transition-colors">
+               <span class="material-icons text-sm">arrow_back</span> Back to Website
+             </a>
+          </div>
         </aside>
 
         <!-- Main Content Area -->
@@ -178,28 +196,49 @@ import { select, scaleBand, axisBottom, scaleLinear, max, axisLeft } from 'd3';
           <!-- CMS: CONTENT EDITOR -->
           @if (activeTab() === 'content-editor') {
              <div class="flex justify-between items-center mb-6">
-               <h2 class="text-2xl font-bold text-stone-800">Page Content Manager</h2>
+               <h2 class="text-2xl font-bold text-stone-800">Static Page Content Manager</h2>
                <button (click)="saveSettings()" class="theme-bg-primary text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2">
                  <span class="material-icons text-sm">save</span> Save Changes
                </button>
              </div>
              
              <div class="grid grid-cols-1 gap-6">
-                <!-- History Page Content -->
+                <!-- Main WYSIWYG Editor -->
                 <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
-                   <h3 class="font-bold text-stone-800 mb-4 border-b pb-2">History & Sthala Purana Content</h3>
-                   
-                   <!-- Fake WYSIWYG Toolbar -->
-                   <div class="bg-stone-50 border border-stone-300 border-b-0 rounded-t-lg p-2 flex gap-2">
-                      <button class="p-1 hover:bg-stone-200 rounded" title="Bold"><span class="material-icons text-sm">format_bold</span></button>
-                      <button class="p-1 hover:bg-stone-200 rounded" title="Italic"><span class="material-icons text-sm">format_italic</span></button>
-                      <button class="p-1 hover:bg-stone-200 rounded" title="Underline"><span class="material-icons text-sm">format_underlined</span></button>
-                      <div class="w-px h-6 bg-stone-300 mx-1"></div>
-                      <button class="p-1 hover:bg-stone-200 rounded" title="List"><span class="material-icons text-sm">format_list_bulleted</span></button>
-                      <button class="p-1 hover:bg-stone-200 rounded" title="Align Left"><span class="material-icons text-sm">format_align_left</span></button>
+                   <div class="flex justify-between items-center mb-4 border-b pb-2">
+                      <h3 class="font-bold text-stone-800">Edit Page Content</h3>
+                      <div class="flex bg-stone-100 p-1 rounded-lg">
+                         <button (click)="changeEditorPage('history')" [class.bg-white]="editingPage === 'history'" [class.shadow-sm]="editingPage === 'history'" class="px-3 py-1 text-xs font-bold rounded transition-all">History</button>
+                         <button (click)="changeEditorPage('about')" [class.bg-white]="editingPage === 'about'" [class.shadow-sm]="editingPage === 'about'" class="px-3 py-1 text-xs font-bold rounded transition-all">About Us</button>
+                         <button (click)="changeEditorPage('contact')" [class.bg-white]="editingPage === 'contact'" [class.shadow-sm]="editingPage === 'contact'" class="px-3 py-1 text-xs font-bold rounded transition-all">Contact Us</button>
+                      </div>
                    </div>
-                   <textarea [(ngModel)]="configForm.historyContent" class="w-full p-4 border border-stone-300 rounded-b-lg h-64 focus:outline-none focus:ring-1 focus:ring-amber-500 font-serif leading-relaxed text-stone-700"></textarea>
-                   <p class="text-xs text-stone-400 mt-2 text-right">Supports basic HTML tags.</p>
+                   
+                   <!-- WYSIWYG Toolbar -->
+                   <div class="bg-stone-50 border border-stone-300 border-b-0 rounded-t-lg p-2 flex gap-2 flex-wrap items-center">
+                      <button (click)="execCmd('bold')" class="p-1 hover:bg-stone-200 rounded" title="Bold"><span class="material-icons text-sm">format_bold</span></button>
+                      <button (click)="execCmd('italic')" class="p-1 hover:bg-stone-200 rounded" title="Italic"><span class="material-icons text-sm">format_italic</span></button>
+                      <button (click)="execCmd('underline')" class="p-1 hover:bg-stone-200 rounded" title="Underline"><span class="material-icons text-sm">format_underlined</span></button>
+                      <div class="w-px h-6 bg-stone-300 mx-1"></div>
+                      <button (click)="execCmd('justifyLeft')" class="p-1 hover:bg-stone-200 rounded" title="Align Left"><span class="material-icons text-sm">format_align_left</span></button>
+                      <button (click)="execCmd('justifyCenter')" class="p-1 hover:bg-stone-200 rounded" title="Align Center"><span class="material-icons text-sm">format_align_center</span></button>
+                      <button (click)="execCmd('justifyRight')" class="p-1 hover:bg-stone-200 rounded" title="Align Right"><span class="material-icons text-sm">format_align_right</span></button>
+                      <div class="w-px h-6 bg-stone-300 mx-1"></div>
+                      <button (click)="execCmd('insertUnorderedList')" class="p-1 hover:bg-stone-200 rounded" title="Bullet List"><span class="material-icons text-sm">format_list_bulleted</span></button>
+                      <button (click)="execCmd('insertOrderedList')" class="p-1 hover:bg-stone-200 rounded" title="Numbered List"><span class="material-icons text-sm">format_list_numbered</span></button>
+                      <div class="w-px h-6 bg-stone-300 mx-1"></div>
+                      <button (click)="insertImage()" class="p-1 hover:bg-stone-200 rounded flex items-center gap-1" title="Insert Image"><span class="material-icons text-sm">add_photo_alternate</span> <span class="text-[10px] font-bold">IMG</span></button>
+                      <button (click)="execCmd('formatBlock', 'H2')" class="p-1 hover:bg-stone-200 rounded font-bold text-xs" title="Heading 2">H2</button>
+                      <button (click)="execCmd('formatBlock', 'H3')" class="p-1 hover:bg-stone-200 rounded font-bold text-xs" title="Heading 3">H3</button>
+                   </div>
+                   
+                   <!-- Editable Area -->
+                   <div #editorContentDiv contenteditable="true" 
+                        class="w-full p-4 border border-stone-300 rounded-b-lg h-96 focus:outline-none focus:ring-1 focus:ring-amber-500 font-serif leading-relaxed text-stone-700 overflow-y-auto prose prose-amber max-w-none"
+                        (input)="onEditorInput($event)">
+                   </div>
+                   
+                   <p class="text-xs text-stone-400 mt-2 text-right">Rich Text Editor Enabled. Use toolbar for formatting.</p>
                 </div>
                 
                 <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
@@ -388,6 +427,15 @@ import { select, scaleBand, axisBottom, scaleLinear, max, axisLeft } from 'd3';
                       <div>
                          <label class="block text-xs font-bold uppercase mb-1 flex items-center gap-2"><span class="material-icons text-green-600 text-sm">chat</span> WhatsApp Channel</label>
                          <input [(ngModel)]="configForm.whatsappChannel" class="w-full p-2 border rounded text-sm">
+                      </div>
+                      <!-- NEW FIELDS -->
+                      <div>
+                         <label class="block text-xs font-bold uppercase mb-1 flex items-center gap-2"><span class="material-icons text-pink-600 text-sm">photo_camera</span> Instagram</label>
+                         <input [(ngModel)]="configForm.socialLinks.instagram" class="w-full p-2 border rounded text-sm">
+                      </div>
+                      <div>
+                         <label class="block text-xs font-bold uppercase mb-1 flex items-center gap-2"><span class="material-icons text-black text-sm">tag</span> Twitter / X</label>
+                         <input [(ngModel)]="configForm.socialLinks.twitter" class="w-full p-2 border rounded text-sm">
                       </div>
                    </div>
                 </div>
@@ -636,6 +684,25 @@ import { select, scaleBand, axisBottom, scaleLinear, max, axisLeft } from 'd3';
                 </div>
              </div>
 
+             <!-- General Contact Info Settings -->
+             <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm mb-6">
+                <h3 class="font-bold text-stone-800 mb-4 border-b pb-2">General Contact Info</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1">Phone Number</label>
+                        <input [(ngModel)]="configForm.contactPhone" class="w-full p-2 border rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase mb-1">Email Address</label>
+                        <input [(ngModel)]="configForm.contactEmail" class="w-full p-2 border rounded text-sm">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold uppercase mb-1">Physical Address</label>
+                        <textarea [(ngModel)]="configForm.address" class="w-full p-2 border rounded text-sm h-20 resize-none"></textarea>
+                    </div>
+                </div>
+             </div>
+
              <!-- Theme Customization -->
              <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
                 <h3 class="font-bold text-stone-800 mb-4 border-b pb-2">Theme Customization</h3>
@@ -730,11 +797,13 @@ export class AdminComponent implements AfterViewInit {
   activeTab = signal<string>('dashboard');
   
   @ViewChild('chartContainer') chartContainer!: ElementRef;
+  @ViewChild('editorContentDiv') editorContentDiv!: ElementRef;
   
   tickerText = '';
   Math = Math;
   
   // Login State
+  adminEmail = '';
   adminPassword = '';
   loginError = signal(false);
 
@@ -742,6 +811,9 @@ export class AdminComponent implements AfterViewInit {
   panchangamForm: Panchangam = { ...this.templeService.dailyPanchangam() };
   insightsForm: TempleInsights = { ...this.templeService.insights() };
   configForm: SiteConfig = { ...this.templeService.siteConfig() };
+
+  // Content Editor State
+  editingPage: 'history' | 'about' | 'contact' = 'history';
 
   // News State
   newsForm = { title: '', content: '' };
@@ -789,6 +861,8 @@ export class AdminComponent implements AfterViewInit {
           if (!this.configForm.socialLinks) this.configForm.socialLinks = { };
           // Ensure theme object exists
           if (!this.configForm.theme) this.configForm.theme = { primaryColor: '#800000', secondaryColor: '#d97706', accentColor: '#fbbf24', backgroundColor: '#fffbeb' };
+          
+          this.updateEditorContent();
       });
       
       effect(() => {
@@ -802,10 +876,11 @@ export class AdminComponent implements AfterViewInit {
     if (this.activeTab() === 'dashboard') {
       this.renderChart();
     }
+    this.updateEditorContent();
   }
   
   attemptLogin() {
-    if(this.templeService.loginAdmin(this.adminPassword)) {
+    if(this.templeService.loginAdmin(this.adminEmail, this.adminPassword)) {
        this.loginError.set(false);
     } else {
        this.loginError.set(true);
@@ -817,8 +892,51 @@ export class AdminComponent implements AfterViewInit {
     if (tab === 'dashboard') {
       setTimeout(() => this.renderChart(), 100);
     }
+    if (tab === 'content-editor') {
+        setTimeout(() => this.updateEditorContent(), 100);
+    }
   }
 
+  // --- Content Editor Logic ---
+  changeEditorPage(page: 'history' | 'about' | 'contact') {
+    this.editingPage = page;
+    this.updateEditorContent();
+  }
+
+  updateEditorContent() {
+    if (this.editorContentDiv && this.editorContentDiv.nativeElement) {
+      let content = '';
+      if (this.editingPage === 'history') content = this.configForm.historyContent;
+      else if (this.editingPage === 'about') content = this.configForm.aboutUsContent || '';
+      else if (this.editingPage === 'contact') content = this.configForm.contactUsContent || '';
+      
+      this.editorContentDiv.nativeElement.innerHTML = content;
+    }
+  }
+
+  onEditorInput(event: any) {
+    const content = event.target.innerHTML;
+    if (this.editingPage === 'history') this.configForm.historyContent = content;
+    else if (this.editingPage === 'about') this.configForm.aboutUsContent = content;
+    else if (this.editingPage === 'contact') this.configForm.contactUsContent = content;
+  }
+
+  execCmd(command: string, value: string | undefined = undefined) {
+    document.execCommand(command, false, value);
+    // Trigger input event to save state
+    if (this.editorContentDiv) {
+        this.onEditorInput({ target: this.editorContentDiv.nativeElement });
+    }
+  }
+
+  insertImage() {
+    const url = prompt('Enter Image URL:');
+    if (url) {
+      this.execCmd('insertImage', url);
+    }
+  }
+
+  // --- Chart Logic ---
   renderChart() {
     if (!this.chartContainer || !this.chartContainer.nativeElement) return;
     select(this.chartContainer.nativeElement).selectAll('*').remove();
