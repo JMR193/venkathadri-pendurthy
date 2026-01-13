@@ -260,7 +260,13 @@ export class TempleService {
       metaDescription: 'Official Temple Website',
       keywords: 'temple'
     },
-    socialLinks: {}
+    socialLinks: {
+      facebook: 'https://www.facebook.com/people/Uttarandhra-Tirupati/100064718274530/', 
+      instagram: 'https://instagram.com', 
+      twitter: 'https://twitter.com', 
+      youtube: 'https://www.youtube.com/@ramanujampendurthi1012', 
+      whatsapp: 'https://wa.me/9199999999' 
+    }
   });
 
   availableSevas = signal<SevaType[]>([]);

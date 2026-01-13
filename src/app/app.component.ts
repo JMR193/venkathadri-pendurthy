@@ -1,3 +1,4 @@
+
 import { Component, ChangeDetectionStrategy, inject, signal, ViewChild, ElementRef } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -142,6 +143,7 @@ import { AiChatComponent } from './shared/components/ai-chat.component';
             <p class="mb-6 text-stone-400 leading-relaxed text-sm md:border-l-2 md:border-amber-900/50 md:pl-4">{{ templeService.siteConfig().address }}</p>
              
              <!-- Social Media & Links -->
+             <h4 class="font-bold text-white mb-2 uppercase tracking-widest text-xs">Media & Socials</h4>
              <div class="flex gap-3 justify-center md:justify-start">
                 @if(templeService.siteConfig().socialLinks.youtube) {
                   <a [href]="templeService.siteConfig().socialLinks.youtube" target="_blank" class="w-9 h-9 rounded bg-stone-800 flex items-center justify-center hover:bg-red-600 transition-colors text-white border border-stone-700" title="YouTube"><img src="https://cdn-icons-png.flaticon.com/128/1384/1384060.png" class="w-5 h-5 filter invert"></a>
