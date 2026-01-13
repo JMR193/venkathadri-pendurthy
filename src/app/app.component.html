@@ -1,0 +1,167 @@
+<div class="flex flex-col min-h-screen font-sans bg-stone-50">
+  
+  <!-- Maintenance Mode Overlay -->
+  @if (templeService.siteConfig().maintenanceMode && !router.url.includes('/admin')) {
+    <div class="fixed inset-0 z-[100] bg-stone-900 text-amber-50 flex flex-col items-center justify-center text-center p-8">
+       <div class="w-32 h-32 bg-amber-500 rounded-full flex items-center justify-center mb-8 animate-pulse shadow-[0_0_50px_rgba(245,158,11,0.5)]">
+          <span class="material-icons text-6xl text-stone-900">engineering</span>
+       </div>
+       <h1 class="text-4xl md:text-6xl font-serif font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-orange-400">
+         Temple Renovation
+       </h1>
+       <p class="text-xl md:text-2xl text-stone-400 max-w-2xl font-serif italic mb-8">
+         "The digital sanctum is undergoing purification and enhancement. We will reopen shortly for Darshan."
+       </p>
+       <div class="flex gap-4">
+         <a routerLink="/admin" class="px-6 py-2 border border-stone-700 rounded-full hover:bg-stone-800 transition-colors text-xs uppercase tracking-widest text-stone-500">Admin Access</a>
+       </div>
+    </div>
+  }
+
+  <!-- Sticky Header with Blur -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-[#2a0a0a]/90 backdrop-blur-lg border-b border-white/5 transition-all duration-300 shadow-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-20 items-center">
+        
+        <!-- Logo Area -->
+        <a routerLink="/" class="flex items-center gap-3 group">
+          <div class="relative w-12 h-12">
+             <div class="absolute inset-0 bg-amber-500 rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+             <img [src]="templeService.siteConfig().logoUrl" alt="Temple Logo" class="relative w-12 h-12 rounded-full border-2 border-amber-500/50 group-hover:border-amber-400 transition-colors object-cover">
+          </div>
+          <div class="flex flex-col">
+            <span class="font-serif font-bold text-lg text-amber-50 tracking-wide leading-tight group-hover:text-amber-400 transition-colors">{{ templeService.translate('temple_name') }}</span>
+            <span class="text-[10px] text-stone-400 uppercase tracking-[0.15em] hidden sm:block">Pendurthi Devasthanam</span>
+          </div>
+        </a>
+
+        <!-- Desktop Nav -->
+        <nav class="hidden lg:flex items-center gap-1">
+           <a routerLink="/" routerLinkActive="text-amber-400 bg-white/5" [routerLinkActiveOptions]="{exact: true}" class="px-4 py-2 rounded-full text-sm font-medium text-stone-300 hover:text-white hover:bg-white/10 transition-all">{{ templeService.translate('home') }}</a>
+           <a routerLink="/darshan" routerLinkActive="text-amber-400 bg-white/5" class="px-4 py-2 rounded-full text-sm font-medium text-stone-300 hover:text-white hover:bg-white/10 transition-all">{{ templeService.translate('darshan') }}</a>
+           <a routerLink="/booking" routerLinkActive="text-amber-400 bg-white/5" class="px-4 py-2 rounded-full text-sm font-medium text-stone-300 hover:text-white hover:bg-white/10 transition-all">{{ templeService.translate('booking') }}</a>
+           <a routerLink="/e-hundi" routerLinkActive="text-amber-400 bg-white/5" class="px-4 py-2 rounded-full text-sm font-medium text-stone-300 hover:text-white hover:bg-white/10 transition-all">{{ templeService.translate('hundi') }}</a>
+           
+           <div class="w-px h-6 bg-white/10 mx-2"></div>
+
+           <!-- Language Switcher -->
+           <div class="relative">
+              <button (click)="showLangMenu.set(!showLangMenu())" class="flex items-center gap-1 text-stone-300 hover:text-white px-3 py-2 rounded hover:bg-white/5 text-sm font-bold uppercase">
+                 <span class="material-icons text-sm">language</span> {{ templeService.currentLang() }}
+              </button>
+              @if (showLangMenu()) {
+                 <div class="absolute top-full right-0 mt-2 w-32 bg-white rounded-lg shadow-xl overflow-hidden py-1 border border-stone-200 animate-fade-in text-stone-800">
+                    <button (click)="changeLang('EN')" class="w-full text-left px-4 py-2 hover:bg-stone-100 text-sm">English</button>
+                    <button (click)="changeLang('TE')" class="w-full text-left px-4 py-2 hover:bg-stone-100 text-sm">తెలుగు</button>
+                    <button (click)="changeLang('HI')" class="w-full text-left px-4 py-2 hover:bg-stone-100 text-sm">हिंदी</button>
+                    <button (click)="changeLang('SA')" class="w-full text-left px-4 py-2 hover:bg-stone-100 text-sm">संस्कृतम्</button>
+                 </div>
+              }
+           </div>
+
+           <!-- Profile / Login -->
+           <a routerLink="/profile" routerLinkActive="bg-amber-600/20 text-amber-400 border-amber-600/50" class="ml-2 w-10 h-10 rounded-full bg-stone-800 border border-stone-700 flex items-center justify-center hover:bg-stone-700 transition-colors text-stone-300" title="Devotee Profile">
+              <span class="material-icons">{{ templeService.currentUser() ? 'person' : 'login' }}</span>
+           </a>
+        </nav>
+
+        <!-- Mobile Menu Button -->
+        <div class="lg:hidden flex items-center gap-4">
+           <a routerLink="/profile" class="text-white"><span class="material-icons">{{ templeService.currentUser() ? 'person' : 'login' }}</span></a>
+           <button (click)="isMobileMenuOpen.set(!isMobileMenuOpen())" class="text-white p-2"><span class="material-icons">menu</span></button>
+        </div>
+
+      </div>
+    </div>
+    
+    <!-- Mobile Menu Dropdown -->
+    @if (isMobileMenuOpen()) {
+       <div class="lg:hidden bg-[#1a0a0a] border-t border-white/10 p-4 space-y-2 animate-fade-in">
+          <a (click)="isMobileMenuOpen.set(false)" routerLink="/" class="block px-4 py-3 text-stone-300 hover:bg-white/10 rounded">{{ templeService.translate('home') }}</a>
+          <a (click)="isMobileMenuOpen.set(false)" routerLink="/darshan" class="block px-4 py-3 text-stone-300 hover:bg-white/10 rounded">{{ templeService.translate('darshan') }}</a>
+          <a (click)="isMobileMenuOpen.set(false)" routerLink="/booking" class="block px-4 py-3 text-stone-300 hover:bg-white/10 rounded">{{ templeService.translate('booking') }}</a>
+          <a (click)="isMobileMenuOpen.set(false)" routerLink="/e-hundi" class="block px-4 py-3 text-stone-300 hover:bg-white/10 rounded">{{ templeService.translate('hundi') }}</a>
+          <div class="border-t border-white/10 pt-2 flex gap-4 justify-center">
+             <button (click)="changeLang('EN')" class="text-xs text-stone-400 border border-stone-700 px-2 py-1 rounded">EN</button>
+             <button (click)="changeLang('TE')" class="text-xs text-stone-400 border border-stone-700 px-2 py-1 rounded">TE</button>
+             <button (click)="changeLang('HI')" class="text-xs text-stone-400 border border-stone-700 px-2 py-1 rounded">HI</button>
+          </div>
+       </div>
+    }
+  </header>
+
+  <!-- Spacer for Fixed Header -->
+  <div class="h-20 bg-[#2a0a0a]"></div>
+
+  <!-- Flash News Ticker -->
+  <div class="bg-gradient-to-r from-amber-700 to-red-900 text-white text-sm py-2 overflow-hidden relative shadow-inner z-40 border-b border-orange-900/50">
+    <div class="container mx-auto px-4 flex items-center">
+       <span class="bg-white/10 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest mr-4 border border-white/20">Live Updates</span>
+       <div class="whitespace-nowrap scroll-text font-medium tracking-wide flex gap-8 items-center text-amber-100 flex-grow overflow-hidden">
+         <span class="flex items-center gap-2"><span class="material-icons text-[10px] text-amber-300">circle</span> {{ templeService.flashNews() }}</span>
+       </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-grow relative z-0">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-[#150505] text-stone-400 py-16 border-t-4 border-amber-900 relative overflow-hidden">
+    <!-- Footer Pattern -->
+    <div class="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/mandala.png')] pointer-events-none"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 relative z-10">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-12 text-center md:text-left">
+        
+        <div class="col-span-1 md:col-span-1 flex flex-col items-center md:items-start">
+          <img [src]="templeService.siteConfig().logoUrl" class="w-20 h-20 mb-6 opacity-80 grayscale hover:grayscale-0 transition-all duration-500">
+          <h4 class="font-serif text-xl text-amber-500 mb-4 tracking-wide">{{ templeService.translate('temple_name') }}</h4>
+          <p class="text-xs leading-relaxed opacity-70 mb-4 max-w-xs">{{ templeService.siteConfig().address }}</p>
+          <div class="flex gap-4">
+            <a [href]="templeService.siteConfig().liveLink" target="_blank" class="w-8 h-8 rounded-full bg-white/5 hover:bg-red-600 flex items-center justify-center transition-colors text-white"><span class="material-icons text-sm">smart_display</span></a>
+            <a [href]="templeService.siteConfig().whatsappChannel" target="_blank" class="w-8 h-8 rounded-full bg-white/5 hover:bg-green-600 flex items-center justify-center transition-colors text-white"><span class="material-icons text-sm">chat</span></a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-serif text-white mb-6 uppercase tracking-widest text-xs font-bold border-b border-white/10 pb-2 inline-block">Daily Timings</h4>
+          <ul class="text-sm space-y-3 opacity-80 font-medium">
+            <li class="flex justify-between border-b border-white/5 pb-1 border-dashed"><span>Suprabhatam</span> <span class="text-amber-100">{{ templeService.siteConfig().timings.suprabhatam }}</span></li>
+            <li class="flex justify-between border-b border-white/5 pb-1 border-dashed"><span>Darshan</span> <span class="text-amber-100">06:00 - 13:00</span></li>
+            <li class="flex justify-between border-b border-white/5 pb-1 border-dashed"><span>Evening</span> <span class="text-amber-100">16:00 - 20:30</span></li>
+            <li class="flex justify-between border-b border-white/5 pb-1 border-dashed"><span>Ekantha Seva</span> <span class="text-amber-100">{{ templeService.siteConfig().timings.ekanthaSeva }}</span></li>
+          </ul>
+        </div>
+
+        <div>
+           <h4 class="font-serif text-white mb-6 uppercase tracking-widest text-xs font-bold border-b border-white/10 pb-2 inline-block">Pilgrim Services</h4>
+           <ul class="text-sm space-y-2 font-medium">
+             <li><a routerLink="/booking" class="hover:text-amber-400 transition-colors flex items-center gap-2 justify-center md:justify-start group"><span class="material-icons text-xs group-hover:translate-x-1 transition-transform">chevron_right</span> {{ templeService.translate('booking') }}</a></li>
+             <li><a routerLink="/e-hundi" class="hover:text-amber-400 transition-colors flex items-center gap-2 justify-center md:justify-start group"><span class="material-icons text-xs group-hover:translate-x-1 transition-transform">chevron_right</span> {{ templeService.translate('hundi') }}</a></li>
+             <li><a routerLink="/history" class="hover:text-amber-400 transition-colors flex items-center gap-2 justify-center md:justify-start group"><span class="material-icons text-xs group-hover:translate-x-1 transition-transform">chevron_right</span> {{ templeService.translate('history') }}</a></li>
+             <li><a routerLink="/gallery" class="hover:text-amber-400 transition-colors flex items-center gap-2 justify-center md:justify-start group"><span class="material-icons text-xs group-hover:translate-x-1 transition-transform">chevron_right</span> {{ templeService.translate('gallery') }}</a></li>
+           </ul>
+        </div>
+
+        <div class="flex flex-col items-center md:items-end">
+          <h4 class="font-serif text-white mb-6 uppercase tracking-widest text-xs font-bold border-b border-white/10 pb-2 inline-block">Contact</h4>
+          <p class="text-sm text-amber-100 font-bold mb-1">{{ templeService.siteConfig().contactPhone }}</p>
+          <p class="text-xs opacity-50 mb-6">{{ templeService.siteConfig().contactEmail }}</p>
+          
+          <a routerLink="/admin" class="text-xs border border-white/20 px-4 py-2 rounded hover:bg-white/5 transition-colors text-stone-300 uppercase tracking-widest">{{ templeService.translate('admin') }}</a>
+        </div>
+      </div>
+      
+      <div class="border-t border-white/5 mt-12 pt-8 text-center text-[10px] uppercase tracking-widest opacity-30 flex flex-col md:flex-row justify-between items-center">
+        <span>&copy; 2024 {{ templeService.siteConfig().templeName }}. All rights reserved.</span>
+        <span class="mt-2 md:mt-0 font-serif italic text-amber-500">Om Namo Venkatesaya</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- AI Assistant Widget -->
+  <app-ai-chat></app-ai-chat>
+</div>

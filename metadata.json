@@ -1,0 +1,7 @@
+{
+  "name": "Uttandratirumala",
+  "description": "Uttarandhra Tirumala - An ultra-modern Temple Management System for Shri Venkateswara Swamy Temple, Pendurthi.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
