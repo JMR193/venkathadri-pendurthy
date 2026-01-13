@@ -49,7 +49,6 @@ export interface SiteConfig {
   contactEmail: string;
   address: string;
   mapEmbedUrl: string;
-  whatsappChannel: string;
   historyContent: string;
   historyImageUrl: string;
   aboutUsContent?: string;
@@ -63,7 +62,13 @@ export interface SiteConfig {
   donationAmounts: number[];
   donationCategories: string[];
   seo: SeoConfig;
-  socialLinks: { facebook?: string; instagram?: string; twitter?: string; youtube?: string };
+  socialLinks: { 
+    facebook?: string; 
+    instagram?: string; 
+    twitter?: string; 
+    youtube?: string; 
+    whatsapp?: string; 
+  };
 }
 
 export interface Panchangam {
@@ -186,8 +191,8 @@ export type Language = 'EN' | 'TE' | 'HI' | 'SA'; // English, Telugu, Hindi, San
   providedIn: 'root'
 })
 export class TempleService {
-  private supabaseUrl = 'https://opwncdejpaeltylplvhk.supabase.co';
-  private supabaseKey = 'sb_publishable_u3wGO_9f3tfT2CaldVuDFw_vlXLDymg';
+  private supabaseUrl = 'https://akcwdjwyhsnaxmtnjuqa.supabase.co';
+  private supabaseKey = 'sb_publishable_oG9CQKt4xAiDpgRXAbuGjg_iwk21dsx';
   public supabase: SupabaseClient;
 
   // --- State Signals ---
@@ -214,15 +219,14 @@ export class TempleService {
   siteConfig = signal<SiteConfig>({
     templeName: 'Uttarandhra Tirumala',
     subTitle: 'Shri Venkateswara Swamy Temple, Pendurthi',
-    logoUrl: 'https://opwncdejpaeltylplvhk.supabase.co/storage/v1/object/public/images/logo/cb3d423f-ec99-48a4-b070-adf5c21ddd76.png',
+    logoUrl: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/images/logo/cb3d423f-ec99-48a4-b070-adf5c21ddd76.png',
     liveLink: 'https://www.youtube.com/@ramanujampendurthi1012',
     contactPhone: '+91 99999 99999',
     contactEmail: 'helpdesk@uttarandhratirupati.org',
     address: 'UTTHARANDHRA TIRUPATI, Balaji Nagar, Pendurthi, Visakhapatnam, Andhra Pradesh 531173',
     mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d237.41112734036318!2d83.21121301276729!3d17.811517714706405!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a39671fbc497e33%3A0xfb3d22187ebdc15!2sUTTHARANDHRA%20TIRUPATI%20(%20Venkateswara%20Swamy%20Temple%20)!5e0!3m2!1sen!2sin!4v1768306031383!5m2!1sen!2sin',
-    whatsappChannel: 'https://whatsapp.com/channel/0029Vap96ByFnSzG0KocMq1y',
     historyContent: `The Lord of the Universe and Vaikuntha, Srimannarayana, takes many forms to protect his devotees. In this Kaliyuga, he incarnated as Lord Venkateswara to offer solace to mankind.`,
-    historyImageUrl: 'https://opwncdejpaeltylplvhk.supabase.co/storage/v1/object/public/images/Gemini_Generated_Image_ujj4zlujj4zlujj4.png',
+    historyImageUrl: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/images/Gemini_Generated_Image_ujj4zlujj4zlujj4.png',
     aboutUsContent: '<p>Welcome to Uttarandhra Tirumala, a divine abode dedicated to Lord Venkateswara.</p>',
     contactUsContent: '<p>Contact us at the temple office for seva bookings and donations.</p>',
     bankInfo: {
@@ -260,6 +264,7 @@ export class TempleService {
       youtube: 'https://youtube.com',
       facebook: 'https://facebook.com',
       instagram: 'https://instagram.com',
+      whatsapp: 'https://whatsapp.com/channel/0029Vap96ByFnSzG0KocMq1y',
       twitter: ''
     }
   });
@@ -299,17 +304,17 @@ export class TempleService {
   flashNews = signal<string>("Om Namo Venkatesaya! Annual Brahmotsavams start from next week. Dhanurmasam Tiruppavai recitation daily at 5 AM.");
 
   gallery = signal<GalleryItem[]>([
-    { id: 'img14', type: 'image', url: 'https://opwncdejpaeltylplvhk.supabase.co/storage/v1/object/public/gallery/img%2014.jpg', caption: 'Temple Gopuram' },
-    { id: 'img17', type: 'image', url: 'https://opwncdejpaeltylplvhk.supabase.co/storage/v1/object/public/gallery/img%2017.jpg', caption: 'Utsava Murthy' },
-    { id: 'img2', type: 'image', url: 'https://opwncdejpaeltylplvhk.supabase.co/storage/v1/object/public/gallery/img%202.jpg', caption: 'Alankaram' },
-    { id: 'img3', type: 'image', url: 'https://opwncdejpaeltylplvhk.supabase.co/storage/v1/object/public/gallery/img%203.jpg', caption: 'Garuda Seva' }
+    { id: 'img14', type: 'image', url: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/gallery/img%2014.jpg', caption: 'Temple Gopuram' },
+    { id: 'img17', type: 'image', url: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/gallery/img%2017.jpg', caption: 'Utsava Murthy' },
+    { id: 'img2', type: 'image', url: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/gallery/img%202.jpg', caption: 'Alankaram' },
+    { id: 'img3', type: 'image', url: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/gallery/img%203.jpg', caption: 'Garuda Seva' }
   ]);
 
   news = signal<NewsItem[]>([
     {
        id: '1', title: 'Brahmotsavam Schedule Released', date: new Date().toISOString(), 
        content: 'The detailed schedule for the annual Brahmotsavams has been released. Devotees are requested to participate.',
-       imageUrl: 'https://opwncdejpaeltylplvhk.supabase.co/storage/v1/object/public/gallery/img%205.jpg'
+       imageUrl: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/gallery/img%205.jpg'
     }
   ]);
 
@@ -360,6 +365,7 @@ export class TempleService {
     this.supabase = createClient(this.supabaseUrl, this.supabaseKey);
     interval(30000).subscribe(() => this.simulateUpdates());
     this.applyTheme(this.siteConfig().theme);
+    this.loadData();
   }
 
   // --- Translation Methods ---
@@ -372,7 +378,44 @@ export class TempleService {
     return this.translations[key]?.[lang] || this.translations[key]?.['EN'] || key;
   }
 
-  // --- Actions ---
+  // --- Supabase Actions ---
+
+  async uploadFile(file: File, bucket: string = 'images'): Promise<string | null> {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { data, error } = await this.supabase.storage.from(bucket).upload(filePath, file);
+
+    if (error) {
+      console.error('Supabase Upload Error:', error);
+      // alert('Upload failed: ' + error.message);
+      return null;
+    }
+
+    const { data: publicUrlData } = this.supabase.storage.from(bucket).getPublicUrl(filePath);
+    return publicUrlData.publicUrl;
+  }
+
+  async loadData() {
+    // Attempt to load Gallery
+    const { data: galleryData, error: galleryError } = await this.supabase.from('gallery').select('*').order('created_at', { ascending: false });
+    if (!galleryError && galleryData && galleryData.length > 0) {
+      this.gallery.set(galleryData);
+    }
+
+    // Attempt to load News
+    const { data: newsData, error: newsError } = await this.supabase.from('news').select('*').order('date', { ascending: false });
+    if (!newsError && newsData && newsData.length > 0) {
+      this.news.set(newsData);
+    }
+
+    // Attempt to load Events
+    const { data: eventsData, error: eventsError } = await this.supabase.from('events').select('*').order('startDate', { ascending: true });
+    if (!eventsError && eventsData && eventsData.length > 0) {
+      this.events.set(eventsData);
+    }
+  }
 
   setFestivalMode(isFestival: boolean) {
     this.festivalMode.set(isFestival);
@@ -465,23 +508,56 @@ export class TempleService {
   updateFlashNews(text: string) { this.flashNews.set(text); }
   updateInsights(data: TempleInsights) { this.insights.set(data); }
 
-  addMediaItem(url: string, caption: string, type: 'image' | 'video') {
+  async addMediaItem(url: string, caption: string, type: 'image' | 'video') {
      const newItem: GalleryItem = { id: Date.now().toString(), type, url, caption };
      this.gallery.update(g => [newItem, ...g]);
+     
+     // Backend Persistence
+     const { error } = await this.supabase.from('gallery').insert([{ 
+       type, url, caption, created_at: new Date().toISOString() 
+     }]);
+     if (error) console.warn('Supabase DB Insert Error (Gallery):', error.message);
   }
-  deletePhoto(id: string) { this.gallery.update(g => g.filter(i => i.id !== id)); }
+  
+  async deletePhoto(id: string) { 
+    this.gallery.update(g => g.filter(i => i.id !== id)); 
+    // Backend Persistence
+    const { error } = await this.supabase.from('gallery').delete().eq('id', id);
+    if (error) console.warn('Supabase DB Delete Error (Gallery):', error.message);
+  }
 
-  addNews(title: string, content: string, attachmentUrl?: string, imageUrl?: string) {
+  async addNews(title: string, content: string, attachmentUrl?: string, imageUrl?: string) {
      const item: NewsItem = { id: Date.now().toString(), title, content, date: new Date().toISOString(), attachmentUrl, imageUrl };
      this.news.update(n => [item, ...n]);
-  }
-  deleteNews(id: string) { this.news.update(n => n.filter(i => i.id !== id)); }
 
-  addEvent(event: Omit<TempleEvent, 'id'>) {
-    this.events.update(e => [...e, { ...event, id: Date.now().toString() }]);
+     // Backend Persistence
+     const { error } = await this.supabase.from('news').insert([{ 
+       title, content, imageUrl, attachmentUrl, date: item.date 
+     }]);
+     if (error) console.warn('Supabase DB Insert Error (News):', error.message);
   }
-  deleteEvent(id: string) {
+  
+  async deleteNews(id: string) { 
+    this.news.update(n => n.filter(i => i.id !== id)); 
+    // Backend Persistence
+    const { error } = await this.supabase.from('news').delete().eq('id', id);
+    if (error) console.warn('Supabase DB Delete Error (News):', error.message);
+  }
+
+  async addEvent(event: Omit<TempleEvent, 'id'>) {
+    const newEvent = { ...event, id: Date.now().toString() };
+    this.events.update(e => [...e, newEvent]);
+
+    // Backend Persistence
+    const { error } = await this.supabase.from('events').insert([newEvent]);
+    if (error) console.warn('Supabase DB Insert Error (Events):', error.message);
+  }
+  
+  async deleteEvent(id: string) {
     this.events.update(e => e.filter(i => i.id !== id));
+    // Backend Persistence
+    const { error } = await this.supabase.from('events').delete().eq('id', id);
+    if (error) console.warn('Supabase DB Delete Error (Events):', error.message);
   }
 
   addLibraryItem(item: Omit<LibraryItem, 'id'>) {

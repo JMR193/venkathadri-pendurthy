@@ -155,7 +155,9 @@ import { AiChatComponent } from './shared/components/ai-chat.component';
                 @if(templeService.siteConfig().socialLinks.twitter) {
                   <a [href]="templeService.siteConfig().socialLinks.twitter" target="_blank" class="w-9 h-9 rounded bg-stone-800 flex items-center justify-center hover:bg-black transition-colors text-white border border-stone-700" title="Twitter/X"><img src="https://cdn-icons-png.flaticon.com/128/5969/5969020.png" class="w-4 h-4 filter invert"></a>
                 }
-                <a [href]="templeService.siteConfig().whatsappChannel" class="w-9 h-9 rounded bg-stone-800 flex items-center justify-center hover:bg-green-600 transition-colors text-white border border-stone-700" title="WhatsApp Channel"><img src="https://cdn-icons-png.flaticon.com/128/733/733585.png" class="w-5 h-5 filter invert"></a>
+                @if(templeService.siteConfig().socialLinks.whatsapp) {
+                  <a [href]="templeService.siteConfig().socialLinks.whatsapp" class="w-9 h-9 rounded bg-stone-800 flex items-center justify-center hover:bg-green-600 transition-colors text-white border border-stone-700" title="WhatsApp Channel"><img src="https://cdn-icons-png.flaticon.com/128/733/733585.png" class="w-5 h-5 filter invert"></a>
+                }
              </div>
           </div>
 

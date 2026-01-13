@@ -14,7 +14,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
       <!-- Parallax Hero Section -->
       <section class="relative h-[90vh] flex items-center justify-center overflow-hidden bg-[#2a0a0a]">
         <!-- Background Layer -->
-        <div class="absolute inset-0 opacity-60 bg-[url('https://opwncdejpaeltylplvhk.supabase.co/storage/v1/object/public/images/channels4_banner.jpg')] bg-cover bg-fixed bg-center scale-105 animate-pan-slow"></div>
+        <div class="absolute inset-0 opacity-60 bg-[url('https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/images/channels4_banner.jpg')] bg-cover bg-fixed bg-center scale-105 animate-pan-slow"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/50 to-transparent"></div>
         
         <!-- Content -->

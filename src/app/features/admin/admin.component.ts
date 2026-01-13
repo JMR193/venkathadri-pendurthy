@@ -299,8 +299,13 @@ import { RouterLink } from '@angular/router';
                          </div>
                       </div>
 
-                      <button (click)="publishNews()" [disabled]="!newsForm.title || !newsForm.content" class="w-full theme-bg-primary text-white font-bold py-3 rounded hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2">
-                         <span class="material-icons text-sm">send</span> Publish Now
+                      <button (click)="publishNews()" [disabled]="!newsForm.title || !newsForm.content || isPublishingNews" class="w-full theme-bg-primary text-white font-bold py-3 rounded hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+                         @if (isPublishingNews) {
+                            <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                         } @else {
+                            <span class="material-icons text-sm">send</span>
+                         }
+                         Publish Now
                       </button>
                    </div>
                 </div>
@@ -426,9 +431,8 @@ import { RouterLink } from '@angular/router';
                       </div>
                       <div>
                          <label class="block text-xs font-bold uppercase mb-1 flex items-center gap-2"><span class="material-icons text-green-600 text-sm">chat</span> WhatsApp Channel</label>
-                         <input [(ngModel)]="configForm.whatsappChannel" class="w-full p-2 border rounded text-sm">
+                         <input [(ngModel)]="configForm.socialLinks.whatsapp" class="w-full p-2 border rounded text-sm">
                       </div>
-                      <!-- NEW FIELDS -->
                       <div>
                          <label class="block text-xs font-bold uppercase mb-1 flex items-center gap-2"><span class="material-icons text-pink-600 text-sm">photo_camera</span> Instagram</label>
                          <input [(ngModel)]="configForm.socialLinks.instagram" class="w-full p-2 border rounded text-sm">
@@ -819,6 +823,7 @@ export class AdminComponent implements AfterViewInit {
   newsForm = { title: '', content: '' };
   selectedNewsImage: File | null = null;
   selectedNewsDoc: File | null = null;
+  isPublishingNews = false;
 
   // User Management State
   showUserModal = signal(false);
@@ -1001,17 +1006,28 @@ export class AdminComponent implements AfterViewInit {
   handleNewsImage(event: any) { this.selectedNewsImage = event.target.files[0]; }
   handleNewsDoc(event: any) { this.selectedNewsDoc = event.target.files[0]; }
   
-  publishNews() {
-     // Mock Uploads using ObjectURL
-     const imgUrl = this.selectedNewsImage ? URL.createObjectURL(this.selectedNewsImage) : undefined;
-     const docUrl = this.selectedNewsDoc ? URL.createObjectURL(this.selectedNewsDoc) : undefined;
+  async publishNews() {
+     this.isPublishingNews = true;
      
-     this.templeService.addNews(this.newsForm.title, this.newsForm.content, docUrl, imgUrl);
+     let imgUrl: string | undefined = undefined;
+     if (this.selectedNewsImage) {
+        const url = await this.templeService.uploadFile(this.selectedNewsImage, 'images');
+        if (url) imgUrl = url;
+     }
+
+     let docUrl: string | undefined = undefined;
+     if (this.selectedNewsDoc) {
+        const url = await this.templeService.uploadFile(this.selectedNewsDoc, 'documents');
+        if (url) docUrl = url;
+     }
+     
+     await this.templeService.addNews(this.newsForm.title, this.newsForm.content, docUrl, imgUrl);
      
      // Reset
      this.newsForm = { title: '', content: '' };
      this.selectedNewsImage = null;
      this.selectedNewsDoc = null;
+     this.isPublishingNews = false;
      alert('News published successfully!');
   }
   

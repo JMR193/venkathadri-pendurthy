@@ -179,16 +179,21 @@ export class GalleryComponent {
       for (const url of urls) await this.templeService.addMediaItem(url, this.newCaption, this.newMediaType);
       this.resetForm();
     } else if (this.uploadMode === 'file' && this.selectedFile) {
-      // For this implementation, we will simulate file upload and use a placeholder URL if no backend is truly connected
-      // In a real scenario, use templeService.supabase.storage to upload
       this.uploading = true;
-      setTimeout(() => {
-          // Mock successful upload
-          const mockUrl = URL.createObjectURL(this.selectedFile!);
-          this.templeService.addMediaItem(mockUrl, this.newCaption, this.newMediaType);
+      try {
+        const url = await this.templeService.uploadFile(this.selectedFile, 'gallery');
+        if (url) {
+          await this.templeService.addMediaItem(url, this.newCaption, this.newMediaType);
           this.resetForm();
-          this.uploading = false;
-      }, 1500);
+        } else {
+          alert('Failed to upload file. Please check connection.');
+        }
+      } catch (err) {
+        console.error('Upload error', err);
+        alert('Error uploading file.');
+      } finally {
+        this.uploading = false;
+      }
     }
   }
 
