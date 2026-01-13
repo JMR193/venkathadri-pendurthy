@@ -1,6 +1,7 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { interval } from 'rxjs';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { interval, Subscription } from 'rxjs';
+import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 
 // --- Interfaces ---
 export interface BankInfo {
@@ -92,6 +93,7 @@ export interface GalleryItem {
 
 export interface Booking {
   id: string;
+  userId?: string;
   name: string;
   date: string;
   type: string;
@@ -137,6 +139,7 @@ export interface FeedbackItem {
 
 export interface Donation {
   id: string;
+  userId?: string;
   donorName: string;
   amount: number;
   category: string;
@@ -178,14 +181,14 @@ export interface UserProfile {
   email: string;
   role: 'Super Admin' | 'Admin' | 'Priest' | 'Staff' | 'Devotee';
   phone: string;
-  password?: string; // Added password field
+  password?: string; // Only for UI binding in profile forms, not stored in "users" table
   lastActive: string;
   donations?: Donation[];
   bookings?: Booking[];
 }
 
 // --- Translation Types ---
-export type Language = 'EN' | 'TE' | 'HI' | 'SA'; // English, Telugu, Hindi, Sanskrit
+export type Language = 'EN' | 'TE' | 'HI' | 'SA'; 
 
 @Injectable({
   providedIn: 'root'
@@ -196,8 +199,6 @@ export class TempleService {
   public supabase: SupabaseClient;
 
   // --- State Signals ---
-  
-  // Localization
   currentLang = signal<Language>('EN');
   
   translations: Record<string, Record<Language, string>> = {
@@ -215,7 +216,7 @@ export class TempleService {
     'temple_name': { EN: 'Uttarandhra Tirumala', TE: 'ఉత్తరాంధ్ర తిరుమల', HI: 'उत्तरांध्र तिरुमला', SA: 'उत्तरांध्र तिरुमला' },
   };
 
-  // Config
+  // Config - Default State before loading from DB
   siteConfig = signal<SiteConfig>({
     templeName: 'Uttarandhra Tirumala',
     subTitle: 'Shri Venkateswara Swamy Temple, Pendurthi',
@@ -225,10 +226,9 @@ export class TempleService {
     contactEmail: 'helpdesk@uttarandhratirupati.org',
     address: 'UTTHARANDHRA TIRUPATI, Balaji Nagar, Pendurthi, Visakhapatnam, Andhra Pradesh 531173',
     mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d237.41112734036318!2d83.21121301276729!3d17.811517714706405!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a39671fbc497e33%3A0xfb3d22187ebdc15!2sUTTHARANDHRA%20TIRUPATI%20(%20Venkateswara%20Swamy%20Temple%20)!5e0!3m2!1sen!2sin!4v1768306031383!5m2!1sen!2sin',
-    historyContent: `The Lord of the Universe and Vaikuntha, Srimannarayana, takes many forms to protect his devotees. In this Kaliyuga, he incarnated as Lord Venkateswara to offer solace to mankind.`,
-    historyImageUrl: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/images/Gemini_Generated_Image_ujj4zlujj4zlujj4.png',
-    aboutUsContent: '<p>Welcome to Uttarandhra Tirumala, a divine abode dedicated to Lord Venkateswara.</p>',
-    contactUsContent: '<p>Contact us at the temple office for seva bookings and donations.</p>',
+    historyContent: `The Lord of the Universe...`,
+    historyImageUrl: 'https://picsum.photos/id/10/800/600',
+    aboutUsContent: '<p>Welcome to Uttarandhra Tirumala...</p>',
     bankInfo: {
       accountName: 'Uttarandhra Tirupati Devasthanam Trust',
       accountNumber: '123456789012',
@@ -248,33 +248,23 @@ export class TempleService {
     enableHundi: true,
     maintenanceMode: false,
     theme: {
-      primaryColor: '#800000', // Maroon
-      secondaryColor: '#d97706', // Amber-600
-      accentColor: '#fbbf24', // Amber-400
-      backgroundColor: '#fffbeb' // Amber-50
+      primaryColor: '#800000', 
+      secondaryColor: '#d97706',
+      accentColor: '#fbbf24',
+      backgroundColor: '#fffbeb'
     },
-    donationAmounts: [116, 216, 516, 1116, 2116, 5116],
-    donationCategories: ['General Hundi', 'Annadanam', 'Gosala', 'Vidyadanam', 'Temple Construction'],
+    donationAmounts: [116, 216, 516, 1116],
+    donationCategories: ['General Hundi', 'Annadanam'],
     seo: {
-      metaTitle: 'Uttarandhra Tirumala - Official Temple Website',
-      metaDescription: 'Official website of Uttarandhra Tirupati, Pendurthi. Book Darshan, Sevas, and make E-Hundi donations online.',
-      keywords: 'tirupati, pendurthi, temple, darshan, balaji, venkateswara'
+      metaTitle: 'Uttarandhra Tirumala',
+      metaDescription: 'Official Temple Website',
+      keywords: 'temple'
     },
-    socialLinks: {
-      youtube: 'https://youtube.com',
-      facebook: 'https://facebook.com',
-      instagram: 'https://instagram.com',
-      whatsapp: 'https://whatsapp.com/channel/0029Vap96ByFnSzG0KocMq1y',
-      twitter: ''
-    }
+    socialLinks: {}
   });
 
-  availableSevas = signal<SevaType[]>([
-    { id: 'seva1', name: 'Special Entry Darshan', price: 300, description: 'Quick line access to Sanctum' },
-    { id: 'seva2', name: 'Sahasranama Archana', price: 500, description: 'Chanting 1000 names with Tulasi' },
-    { id: 'seva3', name: 'Visesha Abhishekam', price: 1500, description: 'Friday Special Holy Bath' }
-  ]);
-
+  availableSevas = signal<SevaType[]>([]);
+  
   dailyPanchangam = signal<Panchangam>({
     date: new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
     tithi: 'Shukla Ekadashi',
@@ -287,11 +277,8 @@ export class TempleService {
     sunset: '06:12 PM'
   });
 
-  events = signal<TempleEvent[]>([
-    { id: 'evt1', title: 'Vaikuntha Ekadashi', startDate: '2024-12-23', endDate: '2024-12-24', description: 'Uttara Dwara Darshanam', type: 'Festival', status: 'Upcoming' },
-    { id: 'evt2', title: 'Brahmotsavam', startDate: '2024-10-10', endDate: '2024-10-19', description: 'Annual Grand Festival', type: 'Festival', status: 'Upcoming' }
-  ]);
-
+  events = signal<TempleEvent[]>([]);
+  
   insights = signal<TempleInsights>({
     ladduStock: 5000,
     laddusDistributed: 1240,
@@ -300,57 +287,20 @@ export class TempleService {
   });
 
   weather = signal<{temp: number, condition: string}>({ temp: 28, condition: 'Sunny' });
-
-  flashNews = signal<string>("Om Namo Venkatesaya! Annual Brahmotsavams start from next week. Dhanurmasam Tiruppavai recitation daily at 5 AM.");
-
-  gallery = signal<GalleryItem[]>([
-    { id: 'img14', type: 'image', url: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/gallery/img%2014.jpg', caption: 'Temple Gopuram' },
-    { id: 'img17', type: 'image', url: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/gallery/img%2017.jpg', caption: 'Utsava Murthy' },
-    { id: 'img2', type: 'image', url: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/gallery/img%202.jpg', caption: 'Alankaram' },
-    { id: 'img3', type: 'image', url: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/gallery/img%203.jpg', caption: 'Garuda Seva' }
-  ]);
-
-  news = signal<NewsItem[]>([
-    {
-       id: '1', title: 'Brahmotsavam Schedule Released', date: new Date().toISOString(), 
-       content: 'The detailed schedule for the annual Brahmotsavams has been released. Devotees are requested to participate.',
-       imageUrl: 'https://akcwdjwyhsnaxmtnjuqa.supabase.co/storage/v1/object/public/gallery/img%205.jpg'
-    }
-  ]);
-
-  library = signal<LibraryItem[]>([
-    { id: 'lib1', type: 'audio', title: 'Suprabhatam', url: 'https://www.tirumala.org/music/suprabhatam.mp3', description: 'Early morning awakening hymn.' },
-    { id: 'lib2', type: 'audio', title: 'Vishnu Sahasranamam', url: 'https://www.tirumala.org/music/vishnu_sahasranamam.mp3', description: 'Chanting of 1000 names of Lord Vishnu.' },
-    { id: 'lib3', type: 'ebook', title: 'Temple History Book', url: '#', description: 'Detailed history of Uttarandhra Tirupati (PDF).' }
-  ]);
-
+  flashNews = signal<string>("Om Namo Venkatesaya! Welcome to the digital abode.");
+  
+  gallery = signal<GalleryItem[]>([]);
+  news = signal<NewsItem[]>([]);
+  library = signal<LibraryItem[]>([]);
   feedbacks = signal<FeedbackItem[]>([]);
-  donations = signal<Donation[]>([
-    { id: 'd1', donorName: 'Ramesh Gupta', amount: 1116, category: 'Annadanam', date: new Date().toISOString(), transactionId: 'TXN88392' },
-    { id: 'd2', donorName: 'Suresh Kumar', amount: 516, category: 'General Hundi', date: new Date().toISOString(), transactionId: 'TXN11223' }
-  ]);
+  donations = signal<Donation[]>([]);
   bookings = signal<Booking[]>([]);
-
-  inventory = signal<InventoryItem[]>([
-    { id: '1', name: 'Tirupati Laddu (Big)', category: 'Prasad', stock: 4500, unit: 'Pieces', lowStockThreshold: 500 },
-    { id: '2', name: 'Pulihora', category: 'Prasad', stock: 200, unit: 'Kg', lowStockThreshold: 50 }
-  ]);
-
-  accommodationList = signal<Accommodation[]>([
-    { id: '1', name: 'Kalyana Mandapam', type: 'Hall', capacity: 500, status: 'Available', pricePerDay: 25000 },
-    { id: '2', name: 'Guest House A (AC)', type: 'Room', capacity: 4, status: 'Occupied', pricePerDay: 1500 }
-  ]);
-
-  // Devotee Authentication State
+  inventory = signal<InventoryItem[]>([]);
+  accommodationList = signal<Accommodation[]>([]);
+  
+  // User Management Signals
+  users = signal<UserProfile[]>([]);
   currentUser = signal<UserProfile | null>(null);
-
-  // Admin Authentication State
-  private _isAdminAuthenticated = signal<boolean>(false);
-
-  users = signal<UserProfile[]>([
-    { id: '1', name: 'Admin User', email: 'admin@uttarandhra.org', role: 'Super Admin', phone: '9999999999', lastActive: new Date().toISOString(), password: 'admin' },
-    { id: 'dev1', name: 'Srinivas Rao', email: 'srinivas@example.com', role: 'Devotee', phone: '9876543210', lastActive: new Date().toISOString(), bookings: [], donations: [], password: 'password' }
-  ]);
   
   // 3D Darshan State
   festivalMode = signal<boolean>(false);
@@ -363,121 +313,118 @@ export class TempleService {
 
   constructor() {
     this.supabase = createClient(this.supabaseUrl, this.supabaseKey);
-    interval(30000).subscribe(() => this.simulateUpdates());
-    this.applyTheme(this.siteConfig().theme);
-    this.loadData();
+    
+    // Initial Load
+    this.loadAllData();
+    this.setupRealtimeSubscriptions();
+    this.checkSession();
+
+    // Background updates for insights simulation/sync
+    interval(60000).subscribe(() => this.refreshLiveData());
+  }
+
+  // --- Core Loading Logic ---
+
+  async loadAllData() {
+    // 1. Site Config
+    const { data: configData } = await this.supabase.from('system_settings').select('value').eq('key', 'site_config').single();
+    if (configData?.value) {
+      this.siteConfig.set(configData.value);
+      this.applyTheme(configData.value.theme);
+    }
+
+    // 2. Collections
+    const { data: sevas } = await this.supabase.from('sevas').select('*');
+    if (sevas) this.availableSevas.set(sevas);
+
+    const { data: events } = await this.supabase.from('events').select('*').order('startDate');
+    if (events) this.events.set(events);
+
+    const { data: news } = await this.supabase.from('news').select('*').order('date', { ascending: false });
+    if (news) this.news.set(news);
+
+    const { data: gallery } = await this.supabase.from('gallery').select('*').order('created_at', { ascending: false });
+    if (gallery) this.gallery.set(gallery);
+
+    const { data: library } = await this.supabase.from('library').select('*');
+    if (library) this.library.set(library);
+
+    const { data: feedbacks } = await this.supabase.from('feedbacks').select('*').order('date', { ascending: false }).limit(50);
+    if (feedbacks) this.feedbacks.set(feedbacks);
+
+    const { data: rooms } = await this.supabase.from('accommodation').select('*');
+    if (rooms) this.accommodationList.set(rooms);
+
+    const { data: inv } = await this.supabase.from('inventory').select('*');
+    if (inv) this.inventory.set(inv);
+
+    // Secure Data (Bookings/Donations/Users) - RLS will handle visibility
+    const { data: bookings } = await this.supabase.from('bookings').select('*').order('created_at', { ascending: false });
+    if (bookings) this.bookings.set(bookings);
+
+    const { data: donations } = await this.supabase.from('donations').select('*').order('date', { ascending: false });
+    if (donations) this.donations.set(donations);
+    
+    // Only admins will get results here due to RLS, or current user
+    const { data: users } = await this.supabase.from('users').select('*');
+    if (users) this.users.set(users);
+  }
+
+  setupRealtimeSubscriptions() {
+    // Subscribe to public changes to keep UI live
+    this.supabase.channel('public_db_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, (payload) => {
+          this.handleRealtimeChange(payload, this.bookings);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, (payload) => {
+          this.handleRealtimeChange(payload, this.inventory);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'news' }, (payload) => {
+          this.handleRealtimeChange(payload, this.news);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'system_settings' }, (payload: any) => {
+         if(payload.new && payload.new.key === 'site_config') {
+             this.siteConfig.set(payload.new.value);
+             this.applyTheme(payload.new.value.theme);
+         }
+      })
+      .subscribe();
+  }
+
+  private handleRealtimeChange(payload: any, signalUpdater: any) {
+      if (payload.eventType === 'INSERT') {
+          signalUpdater.update((prev: any[]) => [payload.new, ...prev]);
+      } else if (payload.eventType === 'UPDATE') {
+          signalUpdater.update((prev: any[]) => prev.map(i => i.id === payload.new.id ? payload.new : i));
+      } else if (payload.eventType === 'DELETE') {
+          signalUpdater.update((prev: any[]) => prev.filter(i => i.id !== payload.old.id));
+      }
   }
 
   // --- Translation Methods ---
-  setLanguage(lang: Language) {
-    this.currentLang.set(lang);
-  }
-  
+  setLanguage(lang: Language) { this.currentLang.set(lang); }
   translate(key: string): string {
     const lang = this.currentLang();
     return this.translations[key]?.[lang] || this.translations[key]?.['EN'] || key;
   }
 
-  // --- Supabase Actions ---
-
+  // --- Supabase Storage ---
   async uploadFile(file: File, bucket: string = 'images'): Promise<string | null> {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExt}`;
     const filePath = `${fileName}`;
-
     const { data, error } = await this.supabase.storage.from(bucket).upload(filePath, file);
-
-    if (error) {
-      console.error('Supabase Upload Error:', error);
-      // alert('Upload failed: ' + error.message);
-      return null;
-    }
-
+    if (error) { console.error('Upload Error:', error); return null; }
     const { data: publicUrlData } = this.supabase.storage.from(bucket).getPublicUrl(filePath);
     return publicUrlData.publicUrl;
   }
 
-  async loadData() {
-    // Attempt to load Gallery
-    const { data: galleryData, error: galleryError } = await this.supabase.from('gallery').select('*').order('created_at', { ascending: false });
-    if (!galleryError && galleryData && galleryData.length > 0) {
-      this.gallery.set(galleryData);
-    }
+  // --- Actions ---
 
-    // Attempt to load News
-    const { data: newsData, error: newsError } = await this.supabase.from('news').select('*').order('date', { ascending: false });
-    if (!newsError && newsData && newsData.length > 0) {
-      this.news.set(newsData);
-    }
-
-    // Attempt to load Events
-    const { data: eventsData, error: eventsError } = await this.supabase.from('events').select('*').order('startDate', { ascending: true });
-    if (!eventsError && eventsData && eventsData.length > 0) {
-      this.events.set(eventsData);
-    }
-  }
-
-  setFestivalMode(isFestival: boolean) {
-    this.festivalMode.set(isFestival);
-  }
-
-  private simulateUpdates() {
-     const current = this.insights().darshanWaitTime;
-     const change = Math.floor(Math.random() * 5) - 2;
-     const newTime = Math.max(5, current + change);
-     
-     this.insights.update(i => ({
-         ...i, 
-         darshanWaitTime: newTime,
-         crowdStatus: newTime > 30 ? 'High' : (newTime > 15 ? 'Moderate' : 'Low'),
-         ladduStock: Math.max(0, i.ladduStock - Math.floor(Math.random() * 5)),
-         laddusDistributed: i.laddusDistributed + Math.floor(Math.random() * 5)
-     }));
-     this.updateInventory('1', this.insights().ladduStock);
-  }
-
-  // --- Auth & User Logic ---
-
-  checkUserExists(email: string): boolean {
-    return this.users().some(u => u.email === email);
-  }
-
-  registerDevotee(name: string, email: string, phone: string, password: string): boolean {
-     if (this.checkUserExists(email)) return false;
-
-     const newUser: UserProfile = {
-        id: 'dev' + Date.now(),
-        name,
-        email,
-        phone,
-        password,
-        role: 'Devotee',
-        lastActive: new Date().toISOString(),
-        bookings: [],
-        donations: []
-     };
-     this.users.update(u => [...u, newUser]);
-     this.currentUser.set(newUser);
-     return true;
-  }
-
-  loginDevotee(email: string, password: string): boolean {
-     const user = this.users().find(u => u.email === email && u.password === password);
-     if (user) {
-        this.currentUser.set(user);
-        return true;
-     }
-     return false;
-  }
-
-  logout() {
-      this.currentUser.set(null);
-      this._isAdminAuthenticated.set(false); // Logout admin too just in case
-  }
-
-  updateSiteConfig(config: SiteConfig) { 
+  async updateSiteConfig(config: SiteConfig) {
     this.siteConfig.set(config);
     this.applyTheme(config.theme);
+    await this.supabase.from('system_settings').upsert({ key: 'site_config', value: config });
   }
 
   applyTheme(theme: ThemeConfig) {
@@ -490,166 +437,172 @@ export class TempleService {
     }
   }
 
-  updateSevaPrice(id: string, price: number, name?: string) {
-    this.availableSevas.update(sevas => 
-      sevas.map(s => s.id === id ? { ...s, price, name: name || s.name } : s)
-    );
+  setFestivalMode(isFestival: boolean) { this.festivalMode.set(isFestival); }
+
+  private refreshLiveData() {
+      // Simulate crowd changes or fetch from backend if connected to IoT sensors
+      // For now, we just fetch inventory to keep stock fresh
+      this.supabase.from('inventory').select('*').then(({data}) => {
+          if(data) this.inventory.set(data);
+      });
   }
 
-  addSeva(seva: Omit<SevaType, 'id'>) {
-    this.availableSevas.update(sevas => [...sevas, { ...seva, id: Date.now().toString() }]);
-  }
+  // --- CRUD Operations ---
 
-  deleteSeva(id: string) {
-    this.availableSevas.update(sevas => sevas.filter(s => s.id !== id));
+  async addSeva(seva: Omit<SevaType, 'id'>) {
+    await this.supabase.from('sevas').insert([seva]);
   }
-
+  async deleteSeva(id: string) {
+    await this.supabase.from('sevas').delete().eq('id', id);
+    this.availableSevas.update(s => s.filter(i => i.id !== id));
+  }
+  
   updatePanchangam(data: Panchangam) { this.dailyPanchangam.set(data); }
   updateFlashNews(text: string) { this.flashNews.set(text); }
   updateInsights(data: TempleInsights) { this.insights.set(data); }
 
   async addMediaItem(url: string, caption: string, type: 'image' | 'video') {
-     const newItem: GalleryItem = { id: Date.now().toString(), type, url, caption };
+     await this.supabase.from('gallery').insert([{ type, url, caption }]);
+     // Local update handled by Realtime usually, but good for immediate feedback
+     const newItem: GalleryItem = { id: 'temp-'+Date.now(), type, url, caption };
      this.gallery.update(g => [newItem, ...g]);
-     
-     // Backend Persistence
-     const { error } = await this.supabase.from('gallery').insert([{ 
-       type, url, caption, created_at: new Date().toISOString() 
-     }]);
-     if (error) console.warn('Supabase DB Insert Error (Gallery):', error.message);
   }
-  
-  async deletePhoto(id: string) { 
-    this.gallery.update(g => g.filter(i => i.id !== id)); 
-    // Backend Persistence
-    const { error } = await this.supabase.from('gallery').delete().eq('id', id);
-    if (error) console.warn('Supabase DB Delete Error (Gallery):', error.message);
-  }
+  async deletePhoto(id: string) { await this.supabase.from('gallery').delete().eq('id', id); }
 
   async addNews(title: string, content: string, attachmentUrl?: string, imageUrl?: string) {
-     const item: NewsItem = { id: Date.now().toString(), title, content, date: new Date().toISOString(), attachmentUrl, imageUrl };
-     this.news.update(n => [item, ...n]);
-
-     // Backend Persistence
-     const { error } = await this.supabase.from('news').insert([{ 
-       title, content, imageUrl, attachmentUrl, date: item.date 
-     }]);
-     if (error) console.warn('Supabase DB Insert Error (News):', error.message);
+     await this.supabase.from('news').insert([{ title, content, imageUrl, attachmentUrl }]);
   }
-  
-  async deleteNews(id: string) { 
-    this.news.update(n => n.filter(i => i.id !== id)); 
-    // Backend Persistence
-    const { error } = await this.supabase.from('news').delete().eq('id', id);
-    if (error) console.warn('Supabase DB Delete Error (News):', error.message);
+  async deleteNews(id: string) { await this.supabase.from('news').delete().eq('id', id); }
+
+  async addEvent(event: Omit<TempleEvent, 'id'>) { await this.supabase.from('events').insert([event]); }
+  async deleteEvent(id: string) { await this.supabase.from('events').delete().eq('id', id); }
+
+  async addFeedback(name: string, message: string) {
+     await this.supabase.from('feedbacks').insert([{ name, message }]);
   }
 
-  async addEvent(event: Omit<TempleEvent, 'id'>) {
-    const newEvent = { ...event, id: Date.now().toString() };
-    this.events.update(e => [...e, newEvent]);
-
-    // Backend Persistence
-    const { error } = await this.supabase.from('events').insert([newEvent]);
-    if (error) console.warn('Supabase DB Insert Error (Events):', error.message);
-  }
-  
-  async deleteEvent(id: string) {
-    this.events.update(e => e.filter(i => i.id !== id));
-    // Backend Persistence
-    const { error } = await this.supabase.from('events').delete().eq('id', id);
-    if (error) console.warn('Supabase DB Delete Error (Events):', error.message);
-  }
-
-  addLibraryItem(item: Omit<LibraryItem, 'id'>) {
-     this.library.update(l => [{...item, id: Date.now().toString()}, ...l]);
-  }
-  deleteLibraryItem(id: string) { this.library.update(l => l.filter(i => i.id !== id)); }
-
-  addFeedback(name: string, message: string) {
-     this.feedbacks.update(f => [{ id: Date.now().toString(), name, message, date: new Date().toISOString() }, ...f]);
-  }
-  deleteFeedback(id: string) { this.feedbacks.update(f => f.filter(i => i.id !== id)); }
-
-  addBooking(booking: Omit<Booking, 'id' | 'status'>) {
-    const newBooking: Booking = { ...booking, id: Math.random().toString(36).substr(2, 9), status: 'Confirmed' };
-    this.bookings.update(list => [newBooking, ...list]);
-    
-    // If logged in, add to user profile (Mock)
-    if(this.currentUser()) {
-        this.currentUser.update(u => {
-            if(!u) return null;
-            return { ...u, bookings: [newBooking, ...(u.bookings || [])] };
-        });
+  async addBooking(booking: Omit<Booking, 'id' | 'status'>) {
+    const user = this.currentUser();
+    const payload = { ...booking, userId: user?.id || null };
+    const { data } = await this.supabase.from('bookings').insert([payload]).select().single();
+    if(data) {
+        // If loaded, update UI immediately
+        this.bookings.update(list => [data, ...list]);
+        if(user) {
+             this.currentUser.update(u => u ? ({...u, bookings: [data, ...(u.bookings || [])]}) : null);
+        }
     }
   }
 
-  updateBookingStatus(id: string, status: Booking['status']) {
-    this.bookings.update(list => list.map(b => b.id === id ? { ...b, status } : b));
-  }
-  
-  cancelBooking(id: string) {
-    this.updateBookingStatus(id, 'Cancelled');
+  async updateBookingStatus(id: string, status: Booking['status']) {
+    await this.supabase.from('bookings').update({ status }).eq('id', id);
   }
 
-  addDonation(donation: Donation) {
-    this.donations.update(list => [donation, ...list]);
-     // If logged in, add to user profile (Mock)
-    if(this.currentUser()) {
-        this.currentUser.update(u => {
-            if(!u) return null;
-            return { ...u, donations: [donation, ...(u.donations || [])] };
-        });
+  async addDonation(donation: Donation) {
+    const user = this.currentUser();
+    // Remove ID as DB generates it, unless we pass a temp one. 
+    // Usually best to let DB generate UUID.
+    const { id, ...rest } = donation; 
+    const payload = { ...rest, userId: user?.id || null };
+
+    const { data } = await this.supabase.from('donations').insert([payload]).select().single();
+    if (data) {
+        this.donations.update(list => [data, ...list]);
+         if(user) {
+             this.currentUser.update(u => u ? ({...u, donations: [data, ...(u.donations || [])]}) : null);
+        }
     }
   }
 
-  updateInventory(id: string, newStock: number) {
-    this.inventory.update(items => items.map(i => i.id === id ? { ...i, stock: newStock } : i));
+  async updateInventory(id: string, newStock: number) {
+    await this.supabase.from('inventory').update({ stock: newStock }).eq('id', id);
+  }
+  async addInventoryItem(item: Omit<InventoryItem, 'id'>) { await this.supabase.from('inventory').insert([item]); }
+
+  async updateRoomStatus(id: string, status: Accommodation['status']) {
+    await this.supabase.from('accommodation').update({ status }).eq('id', id);
+  }
+
+  // --- Auth & User Management ---
+
+  async checkSession() {
+    const { data: { session } } = await this.supabase.auth.getSession();
+    if (session?.user) {
+       this.fetchUserProfile(session.user.id);
+    }
+  }
+
+  async fetchUserProfile(userId: string) {
+     const { data: profile } = await this.supabase.from('users').select('*').eq('id', userId).single();
+     if (profile) {
+         // Load user specific data
+         const { data: bookings } = await this.supabase.from('bookings').select('*').eq('userId', userId);
+         const { data: donations } = await this.supabase.from('donations').select('*').eq('userId', userId);
+         
+         this.currentUser.set({ ...profile, bookings: bookings || [], donations: donations || [] });
+     }
+  }
+
+  async registerDevotee(name: string, email: string, phone: string, password: string): Promise<boolean> {
+     const { data, error } = await this.supabase.auth.signUp({ 
+         email, 
+         password,
+         options: { data: { name, phone } } // Meta data triggers the handle_new_user SQL function
+     });
+     
+     if (error || !data.user) {
+         console.error('Signup failed', error);
+         return false;
+     }
+     
+     // Auto login usually happens, wait for session check or set user manually
+     await this.fetchUserProfile(data.user.id);
+     return true;
+  }
+
+  async loginDevotee(email: string, password: string): Promise<boolean> {
+     const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
+     if (error || !data.user) return false;
+     
+     await this.fetchUserProfile(data.user.id);
+     return true;
+  }
+
+  async logout() {
+      await this.supabase.auth.signOut();
+      this.currentUser.set(null);
+  }
+
+  // Admin Management
+  async addUser(user: Partial<UserProfile>) {
+      alert("To add a user, ask them to Sign Up on the portal.");
+  }
+
+  async updateUserProfile(id: string, data: Partial<UserProfile>) {
+     await this.supabase.from('users').update(data).eq('id', id);
+     this.users.update(list => list.map(u => u.id === id ? { ...u, ...data } : u));
   }
   
-  addInventoryItem(item: Omit<InventoryItem, 'id'>) {
-    this.inventory.update(items => [...items, { ...item, id: Date.now().toString() }]);
+  async deleteUser(id: string) {
+      await this.supabase.from('users').delete().eq('id', id);
+      this.users.update(u => u.filter(user => user.id !== id));
   }
 
-  updateRoomStatus(id: string, status: Accommodation['status']) {
-    this.accommodationList.update(list => list.map(r => r.id === id ? { ...r, status } : r));
-  }
+  // --- Admin Auth Check ---
+  async loginAdmin(email: string, password: string): Promise<boolean> {
+    const user = this.currentUser();
+    if (user && (user.role === 'Admin' || user.role === 'Super Admin')) return true;
 
-  addUser(user: Omit<UserProfile, 'id' | 'lastActive'>) {
-    this.users.update(u => [...u, { ...user, id: Date.now().toString(), lastActive: 'Never' }]);
-  }
-
-  updateUserRole(id: string, role: UserProfile['role']) {
-    this.users.update(list => list.map(u => u.id === id ? { ...u, role } : u));
-  }
-
-  updateUserProfile(id: string, data: Partial<UserProfile>) {
-    this.users.update(list => list.map(u => u.id === id ? { ...u, ...data } : u));
-  }
-
-  deleteUser(id: string) {
-    this.users.update(u => u.filter(user => user.id !== id));
-  }
-
-  async verifyPayment(txnId: string, amount: number, category: string): Promise<{success: boolean, message: string}> {
-      return new Promise(resolve => setTimeout(() => resolve({success: true, message: 'Verified'}), 1500));
-  }
-
-  // --- Admin Auth ---
-  loginAdmin(email: string, password: string): boolean {
-    const user = this.users().find(u => u.email === email && u.password === password && (u.role === 'Admin' || u.role === 'Super Admin'));
-    if(user) {
-      this._isAdminAuthenticated.set(true);
-      return true;
-    }
-    // Legacy/Fallback for demo
-    if(email === 'admin' && (password === 'admin123' || password === 'omnamovenkatesaya')) {
-       this._isAdminAuthenticated.set(true);
-       return true;
+    const success = await this.loginDevotee(email, password);
+    if (success) {
+        const u = this.currentUser();
+        return !!(u && (u.role === 'Admin' || u.role === 'Super Admin'));
     }
     return false;
   }
 
   isAdmin(): boolean {
-     return this._isAdminAuthenticated(); 
+     const u = this.currentUser();
+     return u ? (u.role === 'Admin' || u.role === 'Super Admin') : false;
   }
 }

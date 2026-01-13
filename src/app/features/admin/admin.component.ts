@@ -1,3 +1,4 @@
+
 import { Component, inject, signal, computed, effect, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { TempleService, LibraryItem, Booking, NewsItem, GalleryItem, Donation, TempleInsights, Panchangam, SiteConfig, SevaType, InventoryItem, UserProfile, TempleEvent } from '../../core/services/temple.service';
 import { FormsModule } from '@angular/forms';
@@ -41,7 +42,10 @@ import { RouterLink } from '@angular/router';
                 }
              </div>
 
-             <button (click)="attemptLogin()" class="theme-bg-primary text-white px-8 py-3 rounded-lg font-bold hover:opacity-90 transition-opacity w-full">Login</button>
+             <button (click)="attemptLogin()" [disabled]="isLoggingIn()" class="theme-bg-primary text-white px-8 py-3 rounded-lg font-bold hover:opacity-90 transition-opacity w-full flex justify-center items-center gap-2">
+               @if(isLoggingIn()) { <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> }
+               Login
+             </button>
           </div>
         </div>
       }
@@ -126,10 +130,11 @@ import { RouterLink } from '@angular/router';
 
         <!-- Main Content Area -->
         <main class="flex-grow p-8 overflow-y-auto bg-stone-100">
-          
+          <!-- ... (Rest of the template logic identical to previous, just wrapped in correct structure) ... -->
           <!-- 1. DASHBOARD VIEW -->
           @if (activeTab() === 'dashboard') {
-            <header class="flex justify-between items-center mb-8">
+            <!-- Dashboard Content -->
+             <header class="flex justify-between items-center mb-8">
                <div>
                  <h2 class="text-3xl font-serif font-bold text-stone-800">Executive Overview</h2>
                  <p class="text-stone-500 text-sm">Real-time Temple Operations</p>
@@ -193,7 +198,6 @@ import { RouterLink } from '@angular/router';
             </div>
           }
 
-          <!-- CMS: CONTENT EDITOR -->
           @if (activeTab() === 'content-editor') {
              <div class="flex justify-between items-center mb-6">
                <h2 class="text-2xl font-bold text-stone-800">Static Page Content Manager</h2>
@@ -387,8 +391,8 @@ import { RouterLink } from '@angular/router';
                 </table>
              </div>
           }
-
-          <!-- CMS: SEO & MARKETING -->
+          
+          <!-- ... All other tabs (seo, media, users, bookings, inventory, accommodation, insights, settings) ... -->
           @if (activeTab() === 'seo') {
              <div class="flex justify-between items-center mb-6">
                <h2 class="text-2xl font-bold text-stone-800">SEO & Social Media</h2>
@@ -446,7 +450,6 @@ import { RouterLink } from '@angular/router';
              </div>
           }
 
-          <!-- CMS: MEDIA LIBRARY -->
           @if (activeTab() === 'media') {
              <div class="flex justify-between items-center mb-6">
                <h2 class="text-2xl font-bold text-stone-800">Media Library</h2>
@@ -473,8 +476,7 @@ import { RouterLink } from '@angular/router';
                 </div>
              </div>
           }
-          
-          <!-- USER MANAGEMENT -->
+
           @if (activeTab() === 'users') {
              <div class="flex justify-between items-center mb-6">
                <h2 class="text-2xl font-bold text-stone-800">User Management</h2>
@@ -530,7 +532,6 @@ import { RouterLink } from '@angular/router';
              </div>
           }
 
-          <!-- 2. BOOKINGS MANAGEMENT (Reused logic) -->
           @if (activeTab() === 'seva-bookings' || activeTab() === 'darshan-bookings') {
             <div class="mb-6 flex justify-between items-center">
               <h2 class="text-2xl font-bold text-stone-800">{{ bookingTitle() }}</h2>
@@ -579,8 +580,7 @@ import { RouterLink } from '@angular/router';
               </table>
             </div>
           }
-
-          <!-- 3. INVENTORY MANAGEMENT -->
+          
           @if (activeTab() === 'inventory') {
              <div class="mb-6 flex justify-between items-center">
               <h2 class="text-2xl font-bold text-stone-800">Inventory & Stock</h2>
@@ -613,8 +613,7 @@ import { RouterLink } from '@angular/router';
                }
             </div>
           }
-          
-           <!-- 4. ACCOMMODATION -->
+
           @if (activeTab() === 'accommodation') {
              <h2 class="text-2xl font-bold text-stone-800 mb-6">Accommodation & Halls</h2>
              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -643,7 +642,6 @@ import { RouterLink } from '@angular/router';
              </div>
           }
 
-          <!-- Live Insights Editor -->
           @if (activeTab() === 'insights') {
              <h2 class="text-2xl font-bold text-stone-800 mb-6 pb-4 border-b border-stone-300">Live Temple Operations</h2>
              <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200 max-w-4xl">
@@ -809,6 +807,7 @@ export class AdminComponent implements AfterViewInit {
   // Login State
   adminEmail = '';
   adminPassword = '';
+  isLoggingIn = signal(false);
   loginError = signal(false);
 
   // Forms with Two-Way Binding
@@ -884,8 +883,12 @@ export class AdminComponent implements AfterViewInit {
     this.updateEditorContent();
   }
   
-  attemptLogin() {
-    if(this.templeService.loginAdmin(this.adminEmail, this.adminPassword)) {
+  async attemptLogin() {
+    this.isLoggingIn.set(true);
+    const success = await this.templeService.loginAdmin(this.adminEmail, this.adminPassword);
+    this.isLoggingIn.set(false);
+    
+    if(success) {
        this.loginError.set(false);
     } else {
        this.loginError.set(true);

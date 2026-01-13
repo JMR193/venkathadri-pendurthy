@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+
+import { Component, inject, signal, effect } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { TempleService, SevaType } from '../../core/services/temple.service';
@@ -189,11 +190,12 @@ export class BookingComponent {
   });
   
   constructor() {
-    // Set default if available
-    const sevas = this.templeService.availableSevas();
-    if (sevas.length > 0) {
-      this.bookingForm.patchValue({ type: sevas[0].name });
-    }
+    effect(() => {
+        const sevas = this.templeService.availableSevas();
+        if (sevas.length > 0 && !this.bookingForm.get('type')?.value) {
+             this.bookingForm.patchValue({ type: sevas[0].name });
+        }
+    });
   }
 
   goBack() {
